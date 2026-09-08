@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AISO 聯盟一體機 - 訂單管理系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <!-- 頂部導覽列 -->
+  <header class="bg-indigo-600 text-white p-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-wide">AISO 聯盟一體機訂單管理系統</h1>
+      <button onclick="toggleModal('orderModal', true)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition">
+        + 新增訂單 (業務專用)
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-[96%] mx-auto py-6">
+    <!-- 篩選與搜尋列 -->
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex flex-wrap gap-4 items-center">
+        <div>
+          <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
+          <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+            <option value="ALL">全部狀態</option>
+            <option value="待處理">待處理</option>
+            <option value="已領貨">已領貨</option>
+            <option value="出貨中">出貨中</option>
+            <option value="出貨完成">出貨完成</option>
+            <option value="已安裝">已安裝</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
+          <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+            <option value="ALL">全部</option>
+            <option value="未開發票">未開發票</option>
+            <option value="已開發票">已開發票</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+          <span id="refreshIcon">🔄</span> 重新整理資料
+        </button>
+        <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、單號..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
+      </div>
+    </div>
+
+    <!-- 訂單列表表格 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[1300px]">
+        <thead class="bg-slate-100 border-b border-slate-200">
+          <tr>
+            <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款條件</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄 (售後/庫存)</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody">
+          <tr><td colspan="10" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- 新增訂單 Modal -->
+  <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 class="text-xl font-bold mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
+      <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">客戶名稱</label>
+            <input type="text" id="custName" required class="w-full border rounded-lg p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">負責業務</label>
+            <input type="text" id="salesName" required class="w-full border rounded-lg p-2 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">預計出貨日期</label>
+            <input type="date" id="shipDate" required class="w-full border rounded-lg p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">檔案連結 (雲端目錄/附件)</label>
+            <input type="url" id="fileUrl" placeholder="https://..." class="w-full border rounded-lg p-2 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">硬體資訊 (機型/序號)</label>
+            <textarea id="hwInfo" rows="2" placeholder="例：AISO-Pro / SN:883920" required class="w-full border rounded-lg p-2 text-sm"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">軟體資訊 (版本/授權)</label>
+            <textarea id="swInfo" rows="2" placeholder="例：AISO OS v3.1" required class="w-full border rounded-lg p-2 text-sm"></textarea>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border space-y-3">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">總金額 (NT$)</label>
+              <input type="number" id="totalAmount" placeholder="300000" required class="w-full border rounded-lg p-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">付款狀態</label>
+              <select id="paymentStatus" class="w-full border rounded-lg p-2 text-sm">
+                <option value="未付款">未付款</option>
+                <option value="已付訂金">已付訂金</option>
+                <option value="已結清">已結清</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">付款條件</label>
+            <input type="text" id="paymentTerms" placeholder="例：訂金 30%，尾款 70% 安裝後結清" class="w-full border rounded-lg p-2 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">發票狀態</label>
+            <select id="invoiceStatus" class="w-full border rounded-lg p-2 text-sm">
+              <option value="未開發票">未開發票</option>
+              <option value="已開發票">已開發票</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">初始備註</label>
+            <input type="text" id="initialNote" placeholder="注意事項..." class="w-full border rounded-lg p-2 text-sm">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">取消</button>
+          <button type="submit" id="submitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">建立訂單</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 新增備註 Modal -->
+  <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+      <h3 class="text-lg font-bold mb-2">新增售後/庫存備註</h3>
+      <p id="noteTargetOrder" class="text-xs font-mono text-indigo-600 mb-4"></p>
+      <input type="hidden" id="currentOrderId">
+      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2 text-sm mb-4"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm">取消</button>
+        <button onclick="saveNote()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm">新增紀錄</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 指定 Google Apps Script Web App URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
+
+    let orders = [];
+
+    // 設定預設預計出貨日期為今天
+    document.getElementById("shipDate").value = new Date().toISOString().split('T')[0];
+
+    function toggleModal(id, show) {
+      document.getElementById(id).classList.toggle("hidden", !show);
+    }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    async function fetchOrdersFromSheet() {
+      const refreshIcon = document.getElementById("refreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      try {
+        const response = await fetch(API_URL + "?t=" + new Date().getTime(), { redirect: 'follow' });
+        const data = await response.json();
+
+        orders = data.map(item => {
+          const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
+          
+          // 支援 L欄 / L / 預計出貨日期 等格式
+          let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
+          let formattedShipDate = shipDateRaw;
+          if (shipDateRaw && String(shipDateRaw).includes("T")) {
+            formattedShipDate = String(shipDateRaw).split("T")[0];
+          }
+
+          return {
+            orderId: orderId,
+            customer: item["B"] || item["客戶名稱"] || "",
+            sales: item["C"] || item["業務姓名"] || "",
+            hardware: item["D"] || item["硬體資訊"] || "",
+            software: item["E"] || item["軟體資訊"] || "",
+            amount: item["F"] || item["總金額"] || "0",
+            paymentStatus: item["G"] || item["付款狀態"] || "未付款",
+            invoiceStatus: item["H"] || item["發票狀態"] || "未開發票",
+            status: item["I"] || item["訂單狀態"] || "待處理",
+            fileUrl: item["J"] || item["檔案連結"] || "",
+            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+            shipDate: formattedShipDate || "-"
+          };
+        }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+
+        renderOrders();
+      } catch (err) {
+        console.error("讀取失敗：", err);
+        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="10" class="p-8 text-center text-rose-500">無法讀取資料，請確認網路連線。</td></tr>`;
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+      }
+    }
+
+    function renderOrders() {
+      const tbody = document.getElementById("orderTableBody");
+      const filterSt = document.getElementById("filterStatus").value;
+      const filterInv = document.getElementById("filterInvoice").value;
+      const search = document.getElementById("searchInput").value.toLowerCase();
+
+      tbody.innerHTML = "";
+
+      if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">目前尚無訂單資料，或點擊右上角重新整理</td></tr>`;
+        return;
+      }
+
+      orders.filter(o => {
+        const matchSt = filterSt === "ALL" || o.status === filterSt;
+        const matchInv = filterInv === "ALL" || o.invoiceStatus === filterInv;
+        const matchSearch = String(o.customer).toLowerCase().includes(search) || 
+                            String(o.sales).toLowerCase().includes(search) || 
+                            String(o.orderId).toLowerCase().includes(search);
+        return matchSt && matchInv && matchSearch;
+      }).forEach(o => {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-sm";
+        
+        const notesHtml = Array.isArray(o.notes) && o.notes.length > 0
+          ? o.notes.map(n => `<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">${n}</div>`).join('')
+          : `<div class="text-xs text-slate-400">-</div>`;
+
+        tr.innerHTML = `
+          <td class="p-3">
+            <div class="font-mono font-bold text-indigo-600">${o.orderId}</div>
+            <div class="font-medium text-slate-800">${o.customer || '-'}</div>
+            <div class="text-xs text-slate-400">業務: ${o.sales || '-'}</div>
+          </td>
+          <td class="p-3">
+            <span class="inline-block bg-slate-100 px-2 py-1 rounded text-xs font-mono font-medium text-slate-700">
+              📅 ${o.shipDate}
+            </span>
+          </td>
+          <td class="p-3 text-slate-600 max-w-[150px] truncate" title="${o.hardware}">${o.hardware || '-'}</td>
+          <td class="p-3 text-slate-600 max-w-[150px] truncate" title="${o.software}">${o.software || '-'}</td>
+          <td class="p-3">
+            <div class="font-semibold text-slate-700">NT$ ${o.amount}</div>
+          </td>
+          <td class="p-3">
+            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white">
+              ${["未付款", "已付訂金", "已結清"].map(p => 
+                `<option value="${p}" ${String(o.paymentStatus).includes(p) ? 'selected' : ''}>${p}</option>`
+              ).join('')}
+            </select>
+          </td>
+          <td class="p-3">
+            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+              <option value="未開發票" ${o.invoiceStatus === '未開發票' ? 'selected' : ''}>未開發票</option>
+              <option value="已開發票" ${o.invoiceStatus === '已開發票' ? 'selected' : ''}>已開發票</option>
+            </select>
+          </td>
+          <td class="p-3">
+            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium">
+              ${["待處理", "已領貨", "出貨中", "出貨完成", "已安裝"].map(st => 
+                `<option value="${st}" ${o.status === st ? 'selected' : ''}>${st}</option>`
+              ).join('')}
+            </select>
+          </td>
+          <td class="p-3 max-w-[200px]">
+            ${notesHtml}
+          </td>
+          <td class="p-3">
+            <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200">
+              + 備註
+            </button>
+            ${o.fileUrl ? `<a href="${o.fileUrl}" target="_blank" class="block text-xs text-blue-500 underline mt-1">查看附件</a>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function submitOrder(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.innerText = "同步至雲端中...";
+      submitBtn.disabled = true;
+
+      const initialNoteText = document.getElementById("initialNote").value;
+      const dateStr = new Date().toLocaleDateString();
+
+      const newOrder = {
+        action: "create",
+        orderId: "ORD-" + Math.floor(1000 + Math.random() * 9000),
+        customer: document.getElementById("custName").value,
+        sales: document.getElementById("salesName").value,
+        shipDate: document.getElementById("shipDate").value,
+        hardware: document.getElementById("hwInfo").value,
+        software: document.getElementById("swInfo").value,
+        amount: document.getElementById("totalAmount").value,
+        paymentStatus: document.getElementById("paymentStatus").value,
+        paymentTerms: document.getElementById("paymentTerms").value,
+        invoiceStatus: document.getElementById("invoiceStatus").value,
+        status: "待處理",
+        fileUrl: document.getElementById("fileUrl").value,
+        notes: initialNoteText ? [`[${dateStr} 建立] ${initialNoteText}`] : []
+      };
+
+      orders.push(newOrder);
+      renderOrders();
+
+      toggleModal('orderModal', false);
+      document.getElementById("orderForm").reset();
+      document.getElementById("shipDate").value = new Date().toISOString().split('T')[0];
+
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            ...newOrder,
+            note: newOrder.notes.join("\n")
+          })
+        });
+
+        await delay(1500);
+        fetchOrdersFromSheet();
+
+      } catch(err) {
+        console.error("新增失敗：", err);
+      } finally {
+        submitBtn.innerText = "建立訂單";
+        submitBtn.disabled = false;
+      }
+    }
+
+    function openNoteModal(orderId) {
+      document.getElementById("currentOrderId").value = orderId;
+      document.getElementById("noteTargetOrder").innerText = "針對單號: " + orderId;
+      document.getElementById("newNoteText").value = "";
+      toggleModal('noteModal', true);
+    }
+
+    async function saveNote() {
+      const orderId = document.getElementById("currentOrderId").value;
+      const text = document.getElementById("newNoteText").value.trim();
+      if (!text) return;
+
+      const order = orders.find(o => o.orderId === orderId);
+      if (order) {
+        if (!Array.isArray(order.notes)) order.notes = [];
+        const dateStr = new Date().toLocaleDateString();
+        order.notes.push(`[${dateStr}] ${text}`);
+        renderOrders();
+
+        toggleModal('noteModal', false);
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join("\n")
+          })
+        });
+
+        await delay(1000);
+        fetchOrdersFromSheet();
+      }
+    }
+
+    async function updateOrderField(orderId, field, value) {
+      const order = orders.find(o => o.orderId === orderId);
+      if (order) {
+        order[field] = value;
+
+        let payload = { action: "update", orderId: orderId };
+        payload[field] = value;
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+      }
+    }
+
+    fetchOrdersFromSheet();
+  </script>
+</body>
+</html>
