@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理與數據分析系統</title>
+  <title>AISO 聯盟一體機 - 訂單管理系統</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Chart.js 圖表庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
 
@@ -17,16 +19,16 @@
         
         <!-- 主頁面頁籤切換 -->
         <nav class="flex bg-indigo-800/50 p-1 rounded-lg">
-          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition">
+          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer">
             📋 訂單列表
           </button>
-          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition">
+          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer">
             📊 數據統計圖表
           </button>
         </nav>
       </div>
 
-      <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition">
+      <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer">
         + 新增訂單 (業務專用)
       </button>
     </div>
@@ -65,7 +67,7 @@
         </div>
 
         <div class="flex gap-2">
-          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1 cursor-pointer">
             <span id="refreshIcon">🔄</span> 重新整理資料
           </button>
           <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
@@ -104,7 +106,7 @@
           <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
           <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
         </div>
-        <button onclick="updateCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+        <button onclick="updateCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
           🔄 重新計算數據圖表
         </button>
       </div>
@@ -117,7 +119,7 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
               <span>🍕</span> 訂單狀況比例分布 (Pie Chart)
             </h3>
-            <button onclick="downloadChartCanvas('chartStatusPie', '訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+            <button onclick="downloadChartCanvas('chartStatusPie', '訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -132,7 +134,7 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
               <span>💳</span> 財務收款與發票狀態 (Doughnut Chart)
             </h3>
-            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -147,7 +149,7 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
               <span>📈</span> 月度銷售業績趨勢 (Bar Chart)
             </h3>
-            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -162,7 +164,7 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
               <span>🏆</span> 業務銷售業績排行榜 (Horizontal Bar Chart)
             </h3>
-            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -177,7 +179,7 @@
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
               <span>💻</span> 硬體機種銷售與保固覆蓋狀況 (Bar Chart)
             </h3>
-            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -341,8 +343,8 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">取消</button>
-          <button type="submit" id="submitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">儲存訂單</button>
+          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100 cursor-pointer">取消</button>
+          <button type="submit" id="submitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 cursor-pointer">儲存訂單</button>
         </div>
       </form>
     </div>
@@ -356,8 +358,8 @@
       <input type="hidden" id="currentOrderId">
       <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2 text-sm mb-4"></textarea>
       <div class="flex justify-end gap-2">
-        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm">取消</button>
-        <button onclick="saveNote()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm">新增紀錄</button>
+        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm cursor-pointer">取消</button>
+        <button onclick="saveNote()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm cursor-pointer">新增紀錄</button>
       </div>
     </div>
   </div>
@@ -369,15 +371,14 @@
 
     let orders = [];
     let chartInstances = {};
-    let isChartLibLoaded = false;
 
-    // 全局 JSONP 回呼接收 (徹底避開 CORS 限制)
+    // 全局 JSONP 回呼接收 (最安全穩定避開 CORS 限制)
     window.handleSheetData = function(data) {
       const refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
 
       if (!Array.isArray(data)) {
-        console.error("回傳資料非陣列:", data);
+        console.error("回傳資料格式錯誤:", data);
         renderOrders();
         return;
       }
@@ -425,7 +426,6 @@
       renderOrders();
     };
 
-    // 使用 JSONP 模式注入 Script 讀取後端資料
     function fetchOrdersFromSheet() {
       const refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.add("animate-spin");
@@ -439,24 +439,9 @@
       script.onerror = function() {
         console.error("JSONP 讀取失敗");
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法載入資料，請確認網路或 Apps Script 部署版本。</td></tr>`;
+        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法載入資料，請確認網路連線。</td></tr>`;
       };
       document.body.appendChild(script);
-    }
-
-    function loadChartLibrary() {
-      if (isChartLibLoaded || window.Chart) {
-        isChartLibLoaded = true;
-        updateCharts();
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => {
-        isChartLibLoaded = true;
-        updateCharts();
-      };
-      document.head.appendChild(script);
     }
 
     function switchMainTab(tab) {
@@ -466,17 +451,17 @@
       const secAnalytics = document.getElementById("sectionAnalytics");
 
       if (tab === 'orders') {
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition";
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition";
+        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer";
+        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer";
         secOrders.classList.remove("hidden");
         secAnalytics.classList.add("hidden");
       } else {
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition";
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition";
+        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer";
+        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer";
         secAnalytics.classList.remove("hidden");
         secOrders.classList.add("hidden");
         
-        loadChartLibrary();
+        updateCharts();
       }
     }
 
@@ -627,20 +612,20 @@
             ` : '<span class="text-slate-300">-</span>'}
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white">
+            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white cursor-pointer">
               ${["未付款", "已付訂金", "已結清"].map(p => 
                 `<option value="${p}" ${String(o.paymentStatus).includes(p) ? 'selected' : ''}>${p}</option>`
               ).join('')}
             </select>
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 cursor-pointer ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
               <option value="未開發票" ${o.invoiceStatus === '未開發票' ? 'selected' : ''}>未開發票</option>
               <option value="已開發票" ${o.invoiceStatus === '已開發票' ? 'selected' : ''}>已開發票</option>
             </select>
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium ${['到府維修','換貨處理中','重新出貨','退貨處理'].includes(o.status) ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : ''}">
+            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer ${['到府維修','換貨處理中','重新出貨','退貨處理'].includes(o.status) ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : ''}">
               ${statusOptionsHtml}
             </select>
           </td>
@@ -649,10 +634,10 @@
           </td>
           <td class="p-3">
             <div class="flex flex-col gap-1">
-              <button onclick="openOrderModal('${o.orderId}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">
+              <button onclick="openOrderModal('${o.orderId}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">
                 ✏️ 編輯
               </button>
-              <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200">
+              <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200 cursor-pointer">
                 + 備註
               </button>
               ${o.fileUrl ? `<a href="${o.fileUrl}" target="_blank" class="text-xs text-blue-500 underline">附件</a>` : ''}
