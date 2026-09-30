@@ -28,9 +28,15 @@
         </nav>
       </div>
 
-      <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer">
-        + 新增訂單 (業務專用)
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- 🚚 新增出貨預警追蹤按鈕 -->
+        <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer flex items-center gap-1.5">
+          <span>🚚</span> 出貨預警追蹤 (未來5天/10天)
+        </button>
+        <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer">
+          + 新增訂單 (業務專用)
+        </button>
+      </div>
     </div>
   </header>
 
@@ -192,6 +198,92 @@
     </section>
 
   </main>
+
+  <!-- 🚚 新增：出貨預警追蹤 Modal -->
+  <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>🚚</span> 出貨時程預警與備貨追蹤
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">自動過濾「未出貨」訂單，統計未來 5 天與 10 天內需備貨交貨之廠商與台數</p>
+        </div>
+        <button onclick="toggleModal('shipmentTrackerModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">✕</button>
+      </div>
+
+      <!-- 統計 KPI 卡片 -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex justify-between items-center">
+          <div>
+            <div class="text-xs font-semibold text-amber-800 mb-1">🚨 未來 5 天內預計出貨 (急件)</div>
+            <div id="trackerKpi5" class="text-2xl font-black text-amber-600">0 筆廠商 / 0 台</div>
+          </div>
+          <span class="text-3xl">⏰</span>
+        </div>
+        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex justify-between items-center">
+          <div>
+            <div class="text-xs font-semibold text-indigo-800 mb-1">📦 未來 6~10 天內預計出貨</div>
+            <div id="trackerKpi10" class="text-2xl font-black text-indigo-600">0 筆廠商 / 0 台</div>
+          </div>
+          <span class="text-3xl">📅</span>
+        </div>
+      </div>
+
+      <!-- 5天 / 10天 分頁切換區 -->
+      <div class="space-y-6">
+        <!-- 未來 5 天表格 -->
+        <div>
+          <h3 class="text-sm font-bold text-amber-700 bg-amber-100/60 px-3 py-1.5 rounded-lg inline-block mb-3">
+            📍 未來 5 天內出貨明細 (第 1 ~ 5 天)
+          </h3>
+          <div class="border rounded-lg overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 text-slate-600 border-b">
+                <tr>
+                  <th class="p-2.5">預計出貨日</th>
+                  <th class="p-2.5">訂單/ERP單號</th>
+                  <th class="p-2.5">客戶名稱</th>
+                  <th class="p-2.5">硬體需求與機型</th>
+                  <th class="p-2.5">業務/狀態</th>
+                </tr>
+              </thead>
+              <tbody id="trackerTable5Body">
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天預計出貨之訂單</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 未來 6~10 天表格 -->
+        <div>
+          <h3 class="text-sm font-bold text-indigo-700 bg-indigo-100/60 px-3 py-1.5 rounded-lg inline-block mb-3">
+            📍 未來 6~10 天內出貨明細 (第 6 ~ 10 天)
+          </h3>
+          <div class="border rounded-lg overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 text-slate-600 border-b">
+                <tr>
+                  <th class="p-2.5">預計出貨日</th>
+                  <th class="p-2.5">訂單/ERP單號</th>
+                  <th class="p-2.5">客戶名稱</th>
+                  <th class="p-2.5">硬體需求與機型</th>
+                  <th class="p-2.5">業務/狀態</th>
+                </tr>
+              </thead>
+              <tbody id="trackerTable10Body">
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天預計出貨之訂單</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button onclick="toggleModal('shipmentTrackerModal', false)" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium transition cursor-pointer">關閉選單</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 建立 / 編輯訂單 Modal -->
   <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
@@ -447,6 +539,86 @@
         document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線失敗，請確認網路與 Apps Script 設定。</td></tr>';
       };
       document.body.appendChild(script);
+    }
+
+    // 🚚 出貨預警計算邏輯 (計算未來 5 天與 10 天內需備貨之廠商與台數)
+    function openShipmentTrackerModal() {
+      var tbody5 = document.getElementById("trackerTable5Body");
+      var tbody10 = document.getElementById("trackerTable10Body");
+
+      tbody5.innerHTML = "";
+      tbody10.innerHTML = "";
+
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      var list5 = [];
+      var list10 = [];
+
+      orders.forEach(function(o) {
+        // 排除已完成或退貨之訂單
+        if (["出貨完成", "已安裝", "退貨處理"].indexOf(o.status) !== -1) return;
+        if (!o.shipDate || o.shipDate === "-") return;
+
+        var parts = o.shipDate.split("-");
+        if (parts.length !== 3) return;
+
+        var targetDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        targetDate.setHours(0, 0, 0, 0);
+
+        // 計算天數差
+        var diffTime = targetDate.getTime() - today.getTime();
+        var diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+
+        if (diffDays >= 0 && diffDays <= 5) {
+          list5.push({ order: o, daysLeft: diffDays });
+        } else if (diffDays >= 6 && diffDays <= 10) {
+          list10.push({ order: o, daysLeft: diffDays });
+        }
+      });
+
+      // 更新 KPI 數字
+      document.getElementById("trackerKpi5").innerText = list5.length + " 筆廠商";
+      document.getElementById("trackerKpi10").innerText = list10.length + " 筆廠商";
+
+      // 繪製 5 天內表格
+      if (list5.length === 0) {
+        tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天內預計出貨之訂單</td></tr>';
+      } else {
+        list5.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
+          var o = item.order;
+          var badgeText = item.daysLeft === 0 ? "今天出貨" : (item.daysLeft + " 天後交貨");
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-amber-50/40";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-amber-700">' + o.shipDate + ' <span class="text-[10px] bg-amber-100 text-amber-800 px-1 rounded ml-1">' + badgeText + '</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-indigo-600">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + '</td>' +
+            '<td class="p-2.5"><span class="text-xs px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">' + o.sales + ' (' + o.status + ')</span></td>';
+          tbody5.appendChild(tr);
+        });
+      }
+
+      // 繪製 6~10 天內表格
+      if (list10.length === 0) {
+        tbody10.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天內預計出貨之訂單</td></tr>';
+      } else {
+        list10.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
+          var o = item.order;
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-indigo-50/40";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-indigo-700">' + o.shipDate + ' <span class="text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded ml-1">' + item.daysLeft + ' 天後</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-indigo-600">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + '</td>' +
+            '<td class="p-2.5"><span class="text-xs px-1.5 py-0.5 bg-slate-100 rounded text-slate-700">' + o.sales + ' (' + o.status + ')</span></td>';
+          tbody10.appendChild(tr);
+        });
+      }
+
+      toggleModal("shipmentTrackerModal", true);
     }
 
     function switchMainTab(tab) {
