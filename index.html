@@ -3,15 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統</title>
+  <title>AISO 聯盟一體機 - 訂單管理與數據分析系統</title>
+  <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
 
-  <!-- 頂部導覽列 -->
-  <header class="bg-indigo-600 text-white p-4 shadow-lg">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold tracking-wide">AISO 聯盟一體機訂單管理系統</h1>
+  <!-- 頂部導覽列與頁籤切換 -->
+  <header class="bg-indigo-600 text-white p-4 shadow-lg sticky top-0 z-40">
+    <div class="max-w-[98%] mx-auto flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-6">
+        <h1 class="text-2xl font-bold tracking-wide">AISO 聯盟一體機訂單管理系統</h1>
+        
+        <!-- 主頁面頁籤切換 -->
+        <nav class="flex bg-indigo-800/50 p-1 rounded-lg">
+          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition">
+            📋 訂單列表
+          </button>
+          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition">
+            📊 數據統計圖表
+          </button>
+        </nav>
+      </div>
+
       <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition">
         + 新增訂單 (業務專用)
       </button>
@@ -19,65 +33,164 @@
   </header>
 
   <main class="max-w-[98%] mx-auto py-6">
-    <!-- 篩選與搜尋列 -->
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
-      <div class="flex flex-wrap gap-4 items-center">
-        <div>
-          <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
-          <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
-            <option value="ALL">全部狀態</option>
-            <option value="待處理">待處理</option>
-            <option value="已領貨">已領貨</option>
-            <option value="出貨中">出貨中</option>
-            <option value="出貨完成">出貨完成</option>
-            <option value="已安裝">已安裝</option>
-            <option value="到府維修">到府維修</option>
-            <option value="換貨處理中">換貨處理中</option>
-            <option value="重新出貨">重新出貨</option>
-            <option value="退貨處理">退貨處理</option>
-          </select>
+
+    <!-- ==================== 頁籤 1: 訂單列表 ==================== -->
+    <section id="sectionOrders">
+      <!-- 篩選與搜尋列 -->
+      <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div>
+            <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
+            <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+              <option value="ALL">全部狀態</option>
+              <option value="待處理">待處理</option>
+              <option value="已領貨">已領貨</option>
+              <option value="出貨中">出貨中</option>
+              <option value="出貨完成">出貨完成</option>
+              <option value="已安裝">已安裝</option>
+              <option value="到府維修">到府維修</option>
+              <option value="換貨處理中">換貨處理中</option>
+              <option value="重新出貨">重新出貨</option>
+              <option value="退貨處理">退貨處理</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
+            <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+              <option value="ALL">全部</option>
+              <option value="未開發票">未開發票</option>
+              <option value="已開發票">已開發票</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
-          <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
-            <option value="ALL">全部</option>
-            <option value="未開發票">未開發票</option>
-            <option value="已開發票">已開發票</option>
-          </select>
+
+        <div class="flex gap-2">
+          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+            <span id="refreshIcon">🔄</span> 重新整理資料
+          </button>
+          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
         </div>
       </div>
 
-      <div class="flex gap-2">
-        <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
-          <span id="refreshIcon">🔄</span> 重新整理資料
+      <!-- 訂單列表表格 -->
+      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1600px]">
+          <thead class="bg-slate-100 border-b border-slate-200">
+            <tr>
+              <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶/ERP</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊與保固</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊與保固</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款餘額</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">物流資訊</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
+            </tr>
+          </thead>
+          <tbody id="orderTableBody">
+            <tr><td colspan="11" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
+    <section id="sectionAnalytics" class="hidden space-y-6">
+      <!-- 統計圖表頂部功能列 -->
+      <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
+          <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
+        </div>
+        <button onclick="updateCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+          🔄 重新計算數據圖表
         </button>
-        <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號、窗口..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
       </div>
-    </div>
 
-    <!-- 訂單列表表格 -->
-    <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
-      <table class="w-full text-left border-collapse min-w-[1600px]">
-        <thead class="bg-slate-100 border-b border-slate-200">
-          <tr>
-            <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶/ERP</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊與保固</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊與保固</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款餘額</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">物流資訊</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄</th>
-            <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
-          </tr>
-        </thead>
-        <tbody id="orderTableBody">
-          <tr><td colspan="11" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- 圖表區塊網格 Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- 圖表 1: 訂單狀態分布圖 (Pie Chart) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+              <span>🍕</span> 訂單狀況比例分布 (Pie Chart)
+            </h3>
+            <button onclick="downloadChartCanvas('chartStatusPie', '訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+              📥 下載 PNG
+            </button>
+          </div>
+          <div class="h-64 flex justify-center items-center">
+            <canvas id="chartStatusPie"></canvas>
+          </div>
+        </div>
+
+        <!-- 圖表 2: 財務與發票狀態統計 (Doughnut Chart) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+              <span>💳</span> 財務收款與發票狀態 (Doughnut Chart)
+            </h3>
+            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+              📥 下載 PNG
+            </button>
+          </div>
+          <div class="h-64 flex justify-center items-center">
+            <canvas id="chartFinanceDoughnut"></canvas>
+          </div>
+        </div>
+
+        <!-- 圖表 3: 月度業績趨勢 (Bar Chart) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+              <span>📈</span> 月度銷售業績趨勢 (Bar Chart)
+            </h3>
+            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+              📥 下載 PNG
+            </button>
+          </div>
+          <div class="h-72">
+            <canvas id="chartMonthlyBar"></canvas>
+          </div>
+        </div>
+
+        <!-- 圖表 4: 業務銷售業績排行榜 (Horizontal Bar Chart) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+              <span>🏆</span> 業務銷售業績排行榜 (Horizontal Bar Chart)
+            </h3>
+            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+              📥 下載 PNG
+            </button>
+          </div>
+          <div class="h-72">
+            <canvas id="chartSalesRankBar"></canvas>
+          </div>
+        </div>
+
+        <!-- 圖表 5: 硬體設備銷售與保固覆蓋統計 (Bar Chart) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+              <span>💻</span> 硬體機種銷售與保固覆蓋狀況 (Bar Chart)
+            </h3>
+            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition">
+              📥 下載 PNG
+            </button>
+          </div>
+          <div class="h-72">
+            <canvas id="chartHardwareBar"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <!-- 建立 / 編輯訂單 Modal -->
@@ -128,7 +241,7 @@
           </div>
         </div>
 
-        <!-- 保固區塊 (非必填) -->
+        <!-- 保固區塊 -->
         <div class="bg-amber-50/60 p-3 rounded-lg border border-amber-200 space-y-3">
           <div class="text-xs font-bold text-amber-800 flex items-center gap-1">🛡️ 保固資訊設定 (選填)</div>
           
@@ -254,10 +367,51 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
 
-    // 全部訂單狀態清單
     const STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
 
     let orders = [];
+    let chartInstances = {};
+    let isChartLibLoaded = false;
+
+    // 動態非同步載入 Chart.js，避免卡死主要邏輯
+    function loadChartLibrary() {
+      if (isChartLibLoaded || window.Chart) {
+        isChartLibLoaded = true;
+        updateCharts();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      script.onload = () => {
+        isChartLibLoaded = true;
+        updateCharts();
+      };
+      script.onerror = () => {
+        console.warn("Chart.js 圖表庫載入失敗，但不影響表格功能。");
+      };
+      document.head.appendChild(script);
+    }
+
+    function switchMainTab(tab) {
+      const btnOrders = document.getElementById("tabBtnOrders");
+      const btnAnalytics = document.getElementById("tabBtnAnalytics");
+      const secOrders = document.getElementById("sectionOrders");
+      const secAnalytics = document.getElementById("sectionAnalytics");
+
+      if (tab === 'orders') {
+        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition";
+        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition";
+        secOrders.classList.remove("hidden");
+        secAnalytics.classList.add("hidden");
+      } else {
+        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition";
+        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition";
+        secAnalytics.classList.remove("hidden");
+        secOrders.classList.add("hidden");
+        
+        loadChartLibrary();
+      }
+    }
 
     function toggleModal(id, show) {
       document.getElementById(id).classList.toggle("hidden", !show);
@@ -339,50 +493,52 @@
         const response = await fetch(API_URL + "?t=" + new Date().getTime(), { redirect: 'follow' });
         const data = await response.json();
 
-        orders = data.map(item => {
-          const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
-          
-          let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
-          let formattedShipDate = shipDateRaw;
-          if (shipDateRaw && String(shipDateRaw).includes("T")) {
-            formattedShipDate = String(shipDateRaw).split("T")[0];
-          }
+        if (Array.isArray(data)) {
+          orders = data.map(item => {
+            const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
+            
+            let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
+            let formattedShipDate = shipDateRaw;
+            if (shipDateRaw && String(shipDateRaw).includes("T")) {
+              formattedShipDate = String(shipDateRaw).split("T")[0];
+            }
 
-          const formatDate = (val) => {
-            if (!val) return "";
-            return String(val).includes("T") ? String(val).split("T")[0] : String(val);
-          };
+            const formatDate = (val) => {
+              if (!val) return "";
+              return String(val).includes("T") ? String(val).split("T")[0] : String(val);
+            };
 
-          return {
-            orderId: orderId,
-            customer: item["B"] || item["客戶名稱"] || "",
-            sales: item["C"] || item["業務姓名"] || "",
-            hardware: item["D"] || item["硬體資訊"] || "",
-            software: item["E"] || item["軟體資訊"] || "",
-            amount: parseFloat(item["F"] || item["總金額"] || 0),
-            paymentStatus: item["G"] || item["付款狀態"] || "未付款",
-            invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
-            status: item["I"] || item["訂單狀態"] || "待處理",
-            fileUrl: item["J"] || item["檔案連結"] || "",
-            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
-            shipDate: formattedShipDate || "-",
-            erpId: item["M"] || item["ERP編號"] || "",
-            deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
-            logisticsCompany: item["O"] || item["物流公司"] || "",
-            logisticsNo: item["P"] || item["物流單號"] || "",
-            hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
-            hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
-            swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
-            swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
-            warrantyContact: item["U"] || item["保固對接窗口"] || "",
-            warrantyNote: item["V"] || item["保固注意事項"] || ""
-          };
-        }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+            return {
+              orderId: orderId,
+              customer: item["B"] || item["客戶名稱"] || "",
+              sales: item["C"] || item["業務姓名"] || "",
+              hardware: item["D"] || item["硬體資訊"] || "",
+              software: item["E"] || item["軟體資訊"] || "",
+              amount: parseFloat(item["F"] || item["總金額"] || 0),
+              paymentStatus: item["G"] || item["付款狀態"] || "未付款",
+              invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
+              status: item["I"] || item["訂單狀態"] || "待處理",
+              fileUrl: item["J"] || item["檔案連結"] || "",
+              notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+              shipDate: formattedShipDate || "-",
+              erpId: item["M"] || item["ERP編號"] || "",
+              deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
+              logisticsCompany: item["O"] || item["物流公司"] || "",
+              logisticsNo: item["P"] || item["物流單號"] || "",
+              hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
+              hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
+              swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
+              swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
+              warrantyContact: item["U"] || item["保固對接窗口"] || "",
+              warrantyNote: item["V"] || item["保固注意事項"] || ""
+            };
+          }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+        }
 
         renderOrders();
       } catch (err) {
         console.error("讀取失敗：", err);
-        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法讀取資料，請確認網路連線。</td></tr>`;
+        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法讀取資料，請確認網路連線或更新 Google Sheet 部署權限。</td></tr>`;
       } finally {
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
       }
@@ -420,7 +576,6 @@
 
         const balance = Math.max(0, o.amount - o.deposit);
 
-        // 動態渲染訂單狀態下拉選單
         const statusOptionsHtml = STATUS_OPTIONS.map(st => 
           `<option value="${st}" ${o.status === st ? 'selected' : ''}>${st}</option>`
         ).join('');
@@ -441,7 +596,7 @@
             <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.hardware}">${o.hardware || '-'}</div>
             ${(o.hwWarrantStart || o.hwWarrantEnd) ? `
               <div class="text-[11px] text-amber-700 bg-amber-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.hwWarrantStart || '?'} ~ ${o.hwWarrantEnd || '?'}
+                🛡️ 保固: ${o.hwWarrantStart \vert{}\vert{} '?'} ~${o.hwWarrantEnd || '?'}
               </div>
             ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
           </td>
@@ -449,15 +604,14 @@
             <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.software}">${o.software || '-'}</div>
             ${(o.swWarrantStart || o.swWarrantEnd) ? `
               <div class="text-[11px] text-indigo-700 bg-indigo-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.swWarrantStart || '?'} ~ ${o.swWarrantEnd || '?'}
+                🛡️ 保固: ${o.swWarrantStart \vert{}\vert{} '?'} ~${o.swWarrantEnd || '?'}
               </div>
             ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-700">NT$ ${o.amount.toLocaleString()}</div>
             ${o.paymentStatus === '已付訂金' ? `
-              <div class="text-xs text-emerald-600">已付訂金: $${o.deposit.toLocaleString()}</div>
-              <div class="text-xs text-rose-500 font-medium">餘額尾款: $${balance.toLocaleString()}</div>
+              <div class="text-xs text-emerald-600">已付訂金: $${o.deposit.toLocaleString()}</div>               <div class="text-xs text-rose-500 font-medium">餘額尾款: $${balance.toLocaleString()}</div>
             ` : ''}
           </td>
           <td class="p-3 text-xs">
@@ -620,6 +774,204 @@
       }
     }
 
+    // ==================== 📊 安全統計圖表邏輯 (Chart.js) ====================
+
+    function destroyChart(chartId) {
+      if (chartInstances[chartId]) {
+        chartInstances[chartId].destroy();
+        delete chartInstances[chartId];
+      }
+    }
+
+    function updateCharts() {
+      if (typeof Chart === 'undefined') return;
+      if (orders.length === 0) return;
+
+      try {
+        // 1. 訂單狀態分布圓餅圖
+        const statusCounts = {};
+        STATUS_OPTIONS.forEach(st => statusCounts[st] = 0);
+        orders.forEach(o => {
+          const st = o.status || "待處理";
+          statusCounts[st] = (statusCounts[st] || 0) + 1;
+        });
+
+        destroyChart('chartStatusPie');
+        const canvasPie = document.getElementById('chartStatusPie');
+        if (canvasPie) {
+          chartInstances['chartStatusPie'] = new Chart(canvasPie.getContext('2d'), {
+            type: 'pie',
+            data: {
+              labels: Object.keys(statusCounts),
+              datasets: [{
+                data: Object.values(statusCounts),
+                backgroundColor: [
+                  '#94a3b8', '#60a5fa', '#3b82f6', '#10b981', '#059669', 
+                  '#f59e0b', '#f97316', '#ef4444', '#dc2626'
+                ]
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+        }
+
+        // 2. 財務與發票狀態雙層環形圖
+        const payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
+        const invCounts = { "未開發票": 0, "已開發票": 0 };
+
+        orders.forEach(o => {
+          payCounts[o.paymentStatus] = (payCounts[o.paymentStatus] || 0) + 1;
+          invCounts[o.invoiceStatus] = (invCounts[o.invoiceStatus] || 0) + 1;
+        });
+
+        destroyChart('chartFinanceDoughnut');
+        const canvasDoughnut = document.getElementById('chartFinanceDoughnut');
+        if (canvasDoughnut) {
+          chartInstances['chartFinanceDoughnut'] = new Chart(canvasDoughnut.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: ['未付款', '已付訂金', '已結清', '未開發票', '已開發票'],
+              datasets: [{
+                label: '付款狀態',
+                data: [payCounts['未付款'], payCounts['已付訂金'], payCounts['已結清']],
+                backgroundColor: ['#ef4444', '#f59e0b', '#10b981']
+              }, {
+                label: '發票狀態',
+                data: [invCounts['未開發票'], invCounts['已開發票']],
+                backgroundColor: ['#cbd5e1', '#6366f1']
+              }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+          });
+        }
+
+        // 3. 月度業績與銷售趨勢
+        const monthlySales = {};
+        orders.forEach(o => {
+          let monthKey = "未歸類";
+          if (o.shipDate && o.shipDate.includes("-")) {
+            monthKey = o.shipDate.substring(0, 7);
+          }
+          monthlySales[monthKey] = (monthlySales[monthKey] || 0) + o.amount;
+        });
+
+        const sortedMonths = Object.keys(monthlySales).sort();
+
+        destroyChart('chartMonthlyBar');
+        const canvasMonthly = document.getElementById('chartMonthlyBar');
+        if (canvasMonthly) {
+          chartInstances['chartMonthlyBar'] = new Chart(canvasMonthly.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: sortedMonths,
+              datasets: [{
+                label: '月度銷售金額 (NT$)',
+                data: sortedMonths.map(m => monthlySales[m]),
+                backgroundColor: '#4f46e5',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+
+        // 4. 業務銷售績效排行榜
+        const salesPerf = {};
+        orders.forEach(o => {
+          const s = o.sales || "未知業務";
+          salesPerf[s] = (salesPerf[s] || 0) + o.amount;
+        });
+
+        const sortedSales = Object.keys(salesPerf).sort((a,b) => salesPerf[b] - salesPerf[a]);
+
+        destroyChart('chartSalesRankBar');
+        const canvasSales = document.getElementById('chartSalesRankBar');
+        if (canvasSales) {
+          chartInstances['chartSalesRankBar'] = new Chart(canvasSales.getContext('2d'), {
+            type: 'bar',
+            indexAxis: 'y',
+            data: {
+              labels: sortedSales,
+              datasets: [{
+                label: '銷售總額 (NT$)',
+                data: sortedSales.map(s => salesPerf[s]),
+                backgroundColor: '#06b6d4',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { x: { beginAtZero: true } }
+            }
+          });
+        }
+
+        // 5. 硬體設備銷售與保固覆蓋統計
+        const hwCounts = {};
+        const hwWarrantyCounts = {};
+
+        orders.forEach(o => {
+          let model = o.hardware ? o.hardware.split('/')[0].split(' ')[0].trim() : "未指定型號";
+          if (!model) model = "未指定型號";
+
+          hwCounts[model] = (hwCounts[model] || 0) + 1;
+          if (o.hwWarrantEnd) {
+            hwWarrantyCounts[model] = (hwWarrantyCounts[model] || 0) + 1;
+          }
+        });
+
+        const hwModels = Object.keys(hwCounts);
+
+        destroyChart('chartHardwareBar');
+        const canvasHw = document.getElementById('chartHardwareBar');
+        if (canvasHw) {
+          chartInstances['chartHardwareBar'] = new Chart(canvasHw.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: hwModels,
+              datasets: [
+                {
+                  label: '出貨總台數',
+                  data: hwModels.map(m => hwCounts[m]),
+                  backgroundColor: '#8b5cf6',
+                  borderRadius: 6
+                },
+                {
+                  label: '登記保固台數',
+                  data: hwModels.map(m => hwWarrantyCounts[m] || 0),
+                  backgroundColor: '#f59e0b',
+                  borderRadius: 6
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+          });
+        }
+      } catch (e) {
+        console.error("繪製圖表時發生錯誤：", e);
+      }
+    }
+
+    function downloadChartCanvas(canvasId, titleName) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const link = document.createElement('a');
+      link.download = `AISO圖表_${titleName}_${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // 啟動直接讀取資料
     fetchOrdersFromSheet();
   </script>
 </body>
