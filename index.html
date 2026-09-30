@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AISO 聯盟一體機 - 訂單管理系統</title>
-  <!-- 引入 Tailwind CSS 快速美化 -->
+  <!-- 引入 Tailwind CSS 美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入 Chart.js 圖表庫 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
 
@@ -23,7 +21,7 @@
             📋 訂單列表
           </button>
           <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer">
-            📊 數據統計圖表
+            📊 數據統計與分析
           </button>
         </nav>
       </div>
@@ -99,92 +97,68 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
+    <!-- ==================== 頁籤 2: 數據統計與分析 ==================== -->
     <section id="sectionAnalytics" class="hidden space-y-6">
       <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
         <div>
-          <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
-          <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
+          <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboard</h2>
+          <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據。</p>
         </div>
-        <button onclick="updateCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
-          🔄 重新計算數據圖表
+        <button onclick="window.print()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
+          🖨️ 列印 / 導出 PDF 報表
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- 圖表 1: 訂單狀態分布圖 (Pie Chart) -->
+      <!-- 統計圖表與數據卡片 Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="analyticsGrid">
+        
+        <!-- 區塊 1: 訂單狀態分布比例 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>🍕</span> 訂單狀況比例分布 (Pie Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartStatusPie', '訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
-          </div>
-          <div class="h-64 flex justify-center items-center">
-            <canvas id="chartStatusPie"></canvas>
+          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
+            <span>🍕</span> 訂單狀況比例分布
+          </h3>
+          <div id="chartStatusList" class="space-y-3">
+            <!-- 動態生成進度條 -->
           </div>
         </div>
 
-        <!-- 圖表 2: 財務與發票狀態統計 (Doughnut Chart) -->
+        <!-- 區塊 2: 財務與發票統計 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>💳</span> 財務收款與發票狀態 (Doughnut Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
-          </div>
-          <div class="h-64 flex justify-center items-center">
-            <canvas id="chartFinanceDoughnut"></canvas>
+          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
+            <span>💳</span> 財務與收款狀況彙整
+          </h3>
+          <div id="chartFinanceList" class="space-y-3">
+            <!-- 動態生成 -->
           </div>
         </div>
 
-        <!-- 圖表 3: 月度業績趨勢 (Bar Chart) -->
+        <!-- 區塊 3: 月度銷售業績趨勢 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>📈</span> 月度銷售業績趨勢 (Bar Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
-          </div>
-          <div class="h-72">
-            <canvas id="chartMonthlyBar"></canvas>
+          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
+            <span>📈</span> 月度銷售業績趨勢 (NT$)
+          </h3>
+          <div id="chartMonthlyList" class="space-y-3">
+            <!-- 動態生成 -->
           </div>
         </div>
 
-        <!-- 圖表 4: 業務銷售業績排行榜 (Horizontal Bar Chart) -->
+        <!-- 區塊 4: 業務銷售績效排行榜 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>🏆</span> 業務銷售業績排行榜 (Horizontal Bar Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
-          </div>
-          <div class="h-72">
-            <canvas id="chartSalesRankBar"></canvas>
+          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
+            <span>🏆</span> 業務銷售績效排行榜
+          </h3>
+          <div id="chartSalesRankList" class="space-y-3">
+            <!-- 動態生成 -->
           </div>
         </div>
 
-        <!-- 圖表 5: 硬體設備銷售與保固覆蓋統計 (Bar Chart) -->
+        <!-- 區塊 5: 硬體機種銷售與保固統計 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>💻</span> 硬體機種銷售與保固覆蓋狀況 (Bar Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
-          </div>
-          <div class="h-72">
-            <canvas id="chartHardwareBar"></canvas>
+          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
+            <span>💻</span> 硬體機種銷售與保固覆蓋
+          </h3>
+          <div id="chartHardwareList" class="space-y-3">
+            <!-- 動態生成 -->
           </div>
         </div>
 
@@ -370,7 +344,6 @@
     const STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
 
     let orders = [];
-    let chartInstances = {};
 
     // 全局 JSONP 回呼接收
     window.handleSheetData = function(data) {
@@ -379,7 +352,6 @@
 
       try {
         if (!Array.isArray(data)) {
-          console.error("回傳資料格式錯誤:", data);
           renderOrders();
           return;
         }
@@ -426,7 +398,7 @@
 
         renderOrders();
       } catch (e) {
-        console.error("解析資料出錯:", e);
+        console.error("解析錯誤:", e);
         renderOrders();
       }
     };
@@ -442,7 +414,6 @@
       script.id = "jsonpScript";
       script.src = `${API_URL}?callback=handleSheetData&t=${new Date().getTime()}`;
       script.onerror = function() {
-        console.error("JSONP 讀取失敗");
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
         document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法載入資料，請確認網路連線。</td></tr>`;
       };
@@ -466,11 +437,7 @@
         secAnalytics.classList.remove("hidden");
         secOrders.classList.add("hidden");
         
-        try {
-          updateCharts();
-        } catch (e) {
-          console.error("繪製圖表錯誤:", e);
-        }
+        renderAnalyticsUI();
       }
     }
 
@@ -774,200 +741,154 @@
       }
     }
 
-    function destroyChart(chartId) {
-      if (chartInstances[chartId]) {
-        chartInstances[chartId].destroy();
-        delete chartInstances[chartId];
-      }
-    }
+    // ==================== 📊 原生 HTML/CSS 純淨統計分析 (不卡死、超極速) ====================
 
-    function updateCharts() {
-      if (typeof Chart === 'undefined') {
-        console.warn("Chart.js 尚未載入完成");
-        return;
-      }
+    function renderAnalyticsUI() {
       if (orders.length === 0) return;
 
-      try {
-        const statusCounts = {};
-        STATUS_OPTIONS.forEach(st => statusCounts[st] = 0);
-        orders.forEach(o => {
-          const st = o.status || "待處理";
-          statusCounts[st] = (statusCounts[st] || 0) + 1;
-        });
+      const totalCount = orders.length;
 
-        destroyChart('chartStatusPie');
-        const canvasPie = document.getElementById('chartStatusPie');
-        if (canvasPie) {
-          chartInstances['chartStatusPie'] = new Chart(canvasPie.getContext('2d'), {
-            type: 'pie',
-            data: {
-              labels: Object.keys(statusCounts),
-              datasets: [{
-                data: Object.values(statusCounts),
-                backgroundColor: [
-                  '#94a3b8', '#60a5fa', '#3b82f6', '#10b981', '#059669', 
-                  '#f59e0b', '#f97316', '#ef4444', '#dc2626'
-                ]
-              }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-          });
+      // 1. 訂單狀態分布
+      const statusCounts = {};
+      STATUS_OPTIONS.forEach(st => statusCounts[st] = 0);
+      orders.forEach(o => {
+        const st = o.status || "待處理";
+        statusCounts[st] = (statusCounts[st] || 0) + 1;
+      });
+
+      const chartStatusList = document.getElementById('chartStatusList');
+      chartStatusList.innerHTML = STATUS_OPTIONS.map(st => {
+        const count = statusCounts[st] || 0;
+        const pct = Math.round((count / totalCount) * 100) || 0;
+        return `
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span>${st}</span>
+              <span>${count} 筆 (${pct}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-indigo-600 h-2.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 2. 財務與發票統計
+      let totalAmountSum = 0;
+      let totalDepositSum = 0;
+      let totalBalanceSum = 0;
+      let invCount = 0;
+
+      orders.forEach(o => {
+        totalAmountSum += o.amount;
+        totalDepositSum += o.deposit;
+        if (o.paymentStatus === '已付訂金') {
+          totalBalanceSum += Math.max(0, o.amount - o.deposit);
+        } else if (o.paymentStatus === '未付款') {
+          totalBalanceSum += o.amount;
         }
+        if (o.invoiceStatus === '已開發票') invCount++;
+      });
 
-        const payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
-        const invCounts = { "未開發票": 0, "已開發票": 0 };
+      const chartFinanceList = document.getElementById('chartFinanceList');
+      chartFinanceList.innerHTML = `
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+            <div class="text-xs text-slate-500">總成交金額</div>
+            <div class="text-lg font-bold text-indigo-700">NT$ ${totalAmountSum.toLocaleString()}</div>
+          </div>
+          <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+            <div class="text-xs text-slate-500">已收訂金總額</div>
+            <div class="text-lg font-bold text-emerald-700">NT$ ${totalDepositSum.toLocaleString()}</div>
+          </div>
+          <div class="bg-rose-50 p-3 rounded-lg border border-rose-100">
+            <div class="text-xs text-slate-500">待收尾款餘額</div>
+            <div class="text-lg font-bold text-rose-600">NT$ ${totalBalanceSum.toLocaleString()}</div>
+          </div>
+          <div class="bg-purple-50 p-3 rounded-lg border border-purple-100">
+            <div class="text-xs text-slate-500">已開發票比例</div>
+            <div class="text-lg font-bold text-purple-700">${Math.round((invCount/totalCount)*100) || 0}% (${invCount}/${totalCount})</div>
+          </div>
+        </div>
+      `;
 
-        orders.forEach(o => {
-          payCounts[o.paymentStatus] = (payCounts[o.paymentStatus] || 0) + 1;
-          invCounts[o.invoiceStatus] = (invCounts[o.invoiceStatus] || 0) + 1;
-        });
-
-        destroyChart('chartFinanceDoughnut');
-        const canvasDoughnut = document.getElementById('chartFinanceDoughnut');
-        if (canvasDoughnut) {
-          chartInstances['chartFinanceDoughnut'] = new Chart(canvasDoughnut.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-              labels: ['未付款', '已付訂金', '已結清', '未開發票', '已開發票'],
-              datasets: [{
-                label: '付款狀態',
-                data: [payCounts['未付款'], payCounts['已付訂金'], payCounts['已結清']],
-                backgroundColor: ['#ef4444', '#f59e0b', '#10b981']
-              }, {
-                label: '發票狀態',
-                data: [invCounts['未開發票'], invCounts['已開發票']],
-                backgroundColor: ['#cbd5e1', '#6366f1']
-              }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-          });
+      // 3. 月度銷售趨勢
+      const monthlySales = {};
+      orders.forEach(o => {
+        let monthKey = "未歸類";
+        if (o.shipDate && o.shipDate.includes("-")) {
+          monthKey = o.shipDate.substring(0, 7);
         }
+        monthlySales[monthKey] = (monthlySales[monthKey] || 0) + o.amount;
+      });
 
-        const monthlySales = {};
-        orders.forEach(o => {
-          let monthKey = "未歸類";
-          if (o.shipDate && o.shipDate.includes("-")) {
-            monthKey = o.shipDate.substring(0, 7);
-          }
-          monthlySales[monthKey] = (monthlySales[monthKey] || 0) + o.amount;
-        });
+      const maxMonthAmount = Math.max(...Object.values(monthlySales), 1);
+      const chartMonthlyList = document.getElementById('chartMonthlyList');
+      chartMonthlyList.innerHTML = Object.keys(monthlySales).sort().map(m => {
+        const amt = monthlySales[m];
+        const pct = Math.round((amt / maxMonthAmount) * 100);
+        return `
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span>📅 ${m}</span>
+              <span class="font-bold text-slate-700">NT$ ${amt.toLocaleString()}</span>
+            </div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-3 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
 
-        const sortedMonths = Object.keys(monthlySales).sort();
+      // 4. 業務排行榜
+      const salesPerf = {};
+      orders.forEach(o => {
+        const s = o.sales || "未知業務";
+        salesPerf[s] = (salesPerf[s] || 0) + o.amount;
+      });
 
-        destroyChart('chartMonthlyBar');
-        const canvasMonthly = document.getElementById('chartMonthlyBar');
-        if (canvasMonthly) {
-          chartInstances['chartMonthlyBar'] = new Chart(canvasMonthly.getContext('2d'), {
-            type: 'bar',
-            data: {
-              labels: sortedMonths,
-              datasets: [{
-                label: '月度銷售金額 (NT$)',
-                data: sortedMonths.map(m => monthlySales[m]),
-                backgroundColor: '#4f46e5',
-                borderRadius: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { y: { beginAtZero: true } }
-            }
-          });
-        }
+      const sortedSales = Object.keys(salesPerf).sort((a,b) => salesPerf[b] - salesPerf[a]);
+      const maxSalesAmt = Math.max(...Object.values(salesPerf), 1);
 
-        const salesPerf = {};
-        orders.forEach(o => {
-          const s = o.sales || "未知業務";
-          salesPerf[s] = (salesPerf[s] || 0) + o.amount;
-        });
+      const chartSalesRankList = document.getElementById('chartSalesRankList');
+      chartSalesRankList.innerHTML = sortedSales.map((s, idx) => {
+        const amt = salesPerf[s];
+        const pct = Math.round((amt / maxSalesAmt) * 100);
+        return `
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span>第 ${idx+1} 名: 👤 ${s}</span>
+              <span class="font-bold text-slate-700">NT$ ${amt.toLocaleString()}</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
 
-        const sortedSales = Object.keys(salesPerf).sort((a,b) => salesPerf[b] - salesPerf[a]);
+      // 5. 硬體機種統計
+      const hwCounts = {};
+      orders.forEach(o => {
+        let model = o.hardware ? o.hardware.split('/')[0].split(' ')[0].trim() : "未指定型號";
+        if (!model) model = "未指定型號";
+        hwCounts[model] = (hwCounts[model] || 0) + 1;
+      });
 
-        destroyChart('chartSalesRankBar');
-        const canvasSales = document.getElementById('chartSalesRankBar');
-        if (canvasSales) {
-          chartInstances['chartSalesRankBar'] = new Chart(canvasSales.getContext('2d'), {
-            type: 'bar',
-            indexAxis: 'y',
-            data: {
-              labels: sortedSales,
-              datasets: [{
-                label: '銷售總額 (NT$)',
-                data: sortedSales.map(s => salesPerf[s]),
-                backgroundColor: '#06b6d4',
-                borderRadius: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { beginAtZero: true } }
-            }
-          });
-        }
-
-        const hwCounts = {};
-        const hwWarrantyCounts = {};
-
-        orders.forEach(o => {
-          let model = o.hardware ? o.hardware.split('/')[0].split(' ')[0].trim() : "未指定型號";
-          if (!model) model = "未指定型號";
-
-          hwCounts[model] = (hwCounts[model] || 0) + 1;
-          if (o.hwWarrantEnd) {
-            hwWarrantyCounts[model] = (hwWarrantyCounts[model] || 0) + 1;
-          }
-        });
-
-        const hwModels = Object.keys(hwCounts);
-
-        destroyChart('chartHardwareBar');
-        const canvasHw = document.getElementById('chartHardwareBar');
-        if (canvasHw) {
-          chartInstances['chartHardwareBar'] = new Chart(canvasHw.getContext('2d'), {
-            type: 'bar',
-            data: {
-              labels: hwModels,
-              datasets: [
-                {
-                  label: '出貨總台數',
-                  data: hwModels.map(m => hwCounts[m]),
-                  backgroundColor: '#8b5cf6',
-                  borderRadius: 6
-                },
-                {
-                  label: '登記保固台數',
-                  data: hwModels.map(m => hwWarrantyCounts[m] || 0),
-                  backgroundColor: '#f59e0b',
-                  borderRadius: 6
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
-          });
-        }
-      } catch (e) {
-        console.error("繪製圖表時發生錯誤：", e);
-      }
+      const chartHardwareList = document.getElementById('chartHardwareList');
+      chartHardwareList.innerHTML = Object.keys(hwCounts).map(m => {
+        const count = hwCounts[m];
+        const pct = Math.round((count / totalCount) * 100);
+        return `
+          <div class="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100">
+            <span class="text-xs font-medium text-slate-700">💻 ${m}</span>
+            <span class="text-xs font-bold text-indigo-600">${count} 台 (${pct}%)</span>
+          </div>
+        `;
+      }).join('');
     }
 
-    function downloadChartCanvas(canvasId, titleName) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return;
-
-      const link = document.createElement('a');
-      link.download = `AISO圖表_${titleName}_${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-
-    // 啟動直接讀取資料
+    // 啟動讀取
     fetchOrdersFromSheet();
   </script>
 </body>
