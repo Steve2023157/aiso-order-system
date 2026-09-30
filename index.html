@@ -365,7 +365,6 @@
   </div>
 
   <script>
-    // 正確的 Web App Exec 端點網址
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
 
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
@@ -373,7 +372,6 @@
     var orders = [];
     var chartInstances = {};
 
-    // 1. JSONP 接收處理：絕對安全的陣列轉換與防爆保護
     window.handleSheetData = function(data) {
       var refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
@@ -434,7 +432,6 @@
       }
     };
 
-    // 2. 注入 JSONP 腳本抓取試算表資料
     function fetchOrdersFromSheet() {
       var refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.add("animate-spin");
@@ -447,12 +444,11 @@
       script.src = API_URL + "?callback=handleSheetData&t=" + new Date().getTime();
       script.onerror = function() {
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線失敗，請確認網路或 Apps Script 設定。</td></tr>';
+        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線失敗，請確認網路與 Apps Script 設定。</td></tr>';
       };
       document.body.appendChild(script);
     }
 
-    // 3. 頁籤切換邏輯
     function switchMainTab(tab) {
       var btnOrders = document.getElementById("tabBtnOrders");
       var btnAnalytics = document.getElementById("tabBtnAnalytics");
@@ -544,7 +540,6 @@
       toggleModal("orderModal", true);
     }
 
-    // 4. 表格渲染 (標準字串相加，完全無語法錯置風險)
     function renderOrders() {
       var tbody = document.getElementById("orderTableBody");
       var filterSt = document.getElementById("filterStatus").value;
@@ -775,7 +770,6 @@
       }
     }
 
-    // 5. 安全圖表繪製防爆邏輯
     function destroyChart(chartId) {
       if (chartInstances[chartId]) {
         try { chartInstances[chartId].destroy(); } catch(e) {}
@@ -791,7 +785,6 @@
       if (!orders || orders.length === 0) return;
 
       try {
-        // 1. 訂單狀態分布圖
         var statusCounts = {};
         STATUS_OPTIONS.forEach(function(st) { statusCounts[st] = 0; });
         orders.forEach(function(o) {
@@ -818,7 +811,6 @@
           });
         }
 
-        // 2. 財務雙層圖
         var payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         var invCounts = { "未開發票": 0, "已開發票": 0 };
 
@@ -848,7 +840,6 @@
           });
         }
 
-        // 3. 月度金額趨勢圖
         var monthlySales = {};
         orders.forEach(function(o) {
           var monthKey = "未歸類";
@@ -882,7 +873,6 @@
           });
         }
 
-        // 4. 業務排行榜
         var salesPerf = {};
         orders.forEach(function(o) {
           var s = o.sales || "未知業務";
@@ -914,7 +904,6 @@
           });
         }
 
-        // 5. 硬體機種統計圖
         var hwCounts = {};
         var hwWarrantyCounts = {};
 
@@ -974,7 +963,7 @@
       link.click();
     }
 
-    // 頁面啟動立刻發送 JSONP 請求
+    // 啟動發送 JSONP 請求
     fetchOrdersFromSheet();
   </script>
 </body>
