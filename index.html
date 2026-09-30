@@ -372,58 +372,63 @@
     let orders = [];
     let chartInstances = {};
 
-    // 全局 JSONP 回呼接收 (最安全穩定避開 CORS 限制)
+    // 全局 JSONP 回呼接收
     window.handleSheetData = function(data) {
       const refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
 
-      if (!Array.isArray(data)) {
-        console.error("回傳資料格式錯誤:", data);
-        renderOrders();
-        return;
-      }
-
-      orders = data.map(item => {
-        const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
-        
-        let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
-        let formattedShipDate = shipDateRaw;
-        if (shipDateRaw && String(shipDateRaw).includes("T")) {
-          formattedShipDate = String(shipDateRaw).split("T")[0];
+      try {
+        if (!Array.isArray(data)) {
+          console.error("回傳資料格式錯誤:", data);
+          renderOrders();
+          return;
         }
 
-        const formatDate = (val) => {
-          if (!val) return "";
-          return String(val).includes("T") ? String(val).split("T")[0] : String(val);
-        };
+        orders = data.map(item => {
+          const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
+          
+          let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
+          let formattedShipDate = shipDateRaw;
+          if (shipDateRaw && String(shipDateRaw).includes("T")) {
+            formattedShipDate = String(shipDateRaw).split("T")[0];
+          }
 
-        return {
-          orderId: orderId,
-          customer: item["B"] || item["客戶名稱"] || "",
-          sales: item["C"] || item["業務姓名"] || "",
-          hardware: item["D"] || item["硬體資訊"] || "",
-          software: item["E"] || item["軟體資訊"] || "",
-          amount: parseFloat(item["F"] || item["總金額"] || 0),
-          paymentStatus: item["G"] || item["付款狀態"] || "未付款",
-          invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
-          status: item["I"] || item["訂單狀態"] || "待處理",
-          fileUrl: item["J"] || item["檔案連結"] || "",
-          notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
-          shipDate: formattedShipDate || "-",
-          erpId: item["M"] || item["ERP編號"] || "",
-          deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
-          logisticsCompany: item["O"] || item["物流公司"] || "",
-          logisticsNo: item["P"] || item["物流單號"] || "",
-          hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
-          hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
-          swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
-          swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
-          warrantyContact: item["U"] || item["保固對接窗口"] || "",
-          warrantyNote: item["V"] || item["保固注意事項"] || ""
-        };
-      }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+          const formatDate = (val) => {
+            if (!val) return "";
+            return String(val).includes("T") ? String(val).split("T")[0] : String(val);
+          };
 
-      renderOrders();
+          return {
+            orderId: orderId,
+            customer: item["B"] || item["客戶名稱"] || "",
+            sales: item["C"] || item["業務姓名"] || "",
+            hardware: item["D"] || item["硬體資訊"] || "",
+            software: item["E"] || item["軟體資訊"] || "",
+            amount: parseFloat(item["F"] || item["總金額"] || 0),
+            paymentStatus: item["G"] || item["付款狀態"] || "未付款",
+            invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
+            status: item["I"] || item["訂單狀態"] || "待處理",
+            fileUrl: item["J"] || item["檔案連結"] || "",
+            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+            shipDate: formattedShipDate || "-",
+            erpId: item["M"] || item["ERP編號"] || "",
+            deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
+            logisticsCompany: item["O"] || item["物流公司"] || "",
+            logisticsNo: item["P"] || item["物流單號"] || "",
+            hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
+            hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
+            swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
+            swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
+            warrantyContact: item["U"] || item["保固對接窗口"] || "",
+            warrantyNote: item["V"] || item["保固注意事項"] || ""
+          };
+        }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+
+        renderOrders();
+      } catch (e) {
+        console.error("解析資料出錯:", e);
+        renderOrders();
+      }
     };
 
     function fetchOrdersFromSheet() {
@@ -461,7 +466,11 @@
         secAnalytics.classList.remove("hidden");
         secOrders.classList.add("hidden");
         
-        updateCharts();
+        try {
+          updateCharts();
+        } catch (e) {
+          console.error("繪製圖表錯誤:", e);
+        }
       }
     }
 
@@ -773,7 +782,10 @@
     }
 
     function updateCharts() {
-      if (typeof Chart === 'undefined') return;
+      if (typeof Chart === 'undefined') {
+        console.warn("Chart.js 尚未載入完成");
+        return;
+      }
       if (orders.length === 0) return;
 
       try {
