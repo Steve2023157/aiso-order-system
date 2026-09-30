@@ -99,7 +99,6 @@
 
     <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
     <section id="sectionAnalytics" class="hidden space-y-6">
-      <!-- 統計圖表頂部功能列 -->
       <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
         <div>
           <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
@@ -110,7 +109,6 @@
         </button>
       </div>
 
-      <!-- 圖表區塊網格 Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- 圖表 1: 訂單狀態分布圖 (Pie Chart) -->
@@ -373,7 +371,79 @@
     let chartInstances = {};
     let isChartLibLoaded = false;
 
-    // 動態非同步載入 Chart.js，避免卡死主要邏輯
+    // 全局 JSONP 回呼接收 (徹底避開 CORS 限制)
+    window.handleSheetData = function(data) {
+      const refreshIcon = document.getElementById("refreshIcon");
+      if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+
+      if (!Array.isArray(data)) {
+        console.error("回傳資料非陣列:", data);
+        renderOrders();
+        return;
+      }
+
+      orders = data.map(item => {
+        const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
+        
+        let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
+        let formattedShipDate = shipDateRaw;
+        if (shipDateRaw && String(shipDateRaw).includes("T")) {
+          formattedShipDate = String(shipDateRaw).split("T")[0];
+        }
+
+        const formatDate = (val) => {
+          if (!val) return "";
+          return String(val).includes("T") ? String(val).split("T")[0] : String(val);
+        };
+
+        return {
+          orderId: orderId,
+          customer: item["B"] || item["客戶名稱"] || "",
+          sales: item["C"] || item["業務姓名"] || "",
+          hardware: item["D"] || item["硬體資訊"] || "",
+          software: item["E"] || item["軟體資訊"] || "",
+          amount: parseFloat(item["F"] || item["總金額"] || 0),
+          paymentStatus: item["G"] || item["付款狀態"] || "未付款",
+          invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
+          status: item["I"] || item["訂單狀態"] || "待處理",
+          fileUrl: item["J"] || item["檔案連結"] || "",
+          notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+          shipDate: formattedShipDate || "-",
+          erpId: item["M"] || item["ERP編號"] || "",
+          deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
+          logisticsCompany: item["O"] || item["物流公司"] || "",
+          logisticsNo: item["P"] || item["物流單號"] || "",
+          hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
+          hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
+          swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
+          swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
+          warrantyContact: item["U"] || item["保固對接窗口"] || "",
+          warrantyNote: item["V"] || item["保固注意事項"] || ""
+        };
+      }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+
+      renderOrders();
+    };
+
+    // 使用 JSONP 模式注入 Script 讀取後端資料
+    function fetchOrdersFromSheet() {
+      const refreshIcon = document.getElementById("refreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      const oldScript = document.getElementById("jsonpScript");
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+      script.src = `${API_URL}?callback=handleSheetData&t=${new Date().getTime()}`;
+      script.onerror = function() {
+        console.error("JSONP 讀取失敗");
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法載入資料，請確認網路或 Apps Script 部署版本。</td></tr>`;
+      };
+      document.body.appendChild(script);
+    }
+
     function loadChartLibrary() {
       if (isChartLibLoaded || window.Chart) {
         isChartLibLoaded = true;
@@ -385,9 +455,6 @@
       script.onload = () => {
         isChartLibLoaded = true;
         updateCharts();
-      };
-      script.onerror = () => {
-        console.warn("Chart.js 圖表庫載入失敗，但不影響表格功能。");
       };
       document.head.appendChild(script);
     }
@@ -416,8 +483,6 @@
     function toggleModal(id, show) {
       document.getElementById(id).classList.toggle("hidden", !show);
     }
-
-    const delay = ms => new Promise(res => setTimeout(res, ms));
 
     function handlePaymentStatusChange() {
       const pStatus = document.getElementById("paymentStatus").value;
@@ -483,65 +548,6 @@
 
       handlePaymentStatusChange();
       toggleModal("orderModal", true);
-    }
-
-    async function fetchOrdersFromSheet() {
-      const refreshIcon = document.getElementById("refreshIcon");
-      if (refreshIcon) refreshIcon.classList.add("animate-spin");
-
-      try {
-        const response = await fetch(API_URL + "?t=" + new Date().getTime(), { redirect: 'follow' });
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          orders = data.map(item => {
-            const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
-            
-            let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
-            let formattedShipDate = shipDateRaw;
-            if (shipDateRaw && String(shipDateRaw).includes("T")) {
-              formattedShipDate = String(shipDateRaw).split("T")[0];
-            }
-
-            const formatDate = (val) => {
-              if (!val) return "";
-              return String(val).includes("T") ? String(val).split("T")[0] : String(val);
-            };
-
-            return {
-              orderId: orderId,
-              customer: item["B"] || item["客戶名稱"] || "",
-              sales: item["C"] || item["業務姓名"] || "",
-              hardware: item["D"] || item["硬體資訊"] || "",
-              software: item["E"] || item["軟體資訊"] || "",
-              amount: parseFloat(item["F"] || item["總金額"] || 0),
-              paymentStatus: item["G"] || item["付款狀態"] || "未付款",
-              invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
-              status: item["I"] || item["訂單狀態"] || "待處理",
-              fileUrl: item["J"] || item["檔案連結"] || "",
-              notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
-              shipDate: formattedShipDate || "-",
-              erpId: item["M"] || item["ERP編號"] || "",
-              deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
-              logisticsCompany: item["O"] || item["物流公司"] || "",
-              logisticsNo: item["P"] || item["物流單號"] || "",
-              hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
-              hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
-              swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
-              swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
-              warrantyContact: item["U"] || item["保固對接窗口"] || "",
-              warrantyNote: item["V"] || item["保固注意事項"] || ""
-            };
-          }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
-        }
-
-        renderOrders();
-      } catch (err) {
-        console.error("讀取失敗：", err);
-        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法讀取資料，請確認網路連線或更新 Google Sheet 部署權限。</td></tr>`;
-      } finally {
-        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-      }
     }
 
     function renderOrders() {
@@ -712,7 +718,7 @@
           body: JSON.stringify(payload)
         });
 
-        await delay(1500);
+        await new Promise(res => setTimeout(res, 1500));
         fetchOrdersFromSheet();
 
       } catch(err) {
@@ -753,7 +759,7 @@
           })
         });
 
-        await delay(1000);
+        await new Promise(res => setTimeout(res, 1000));
         fetchOrdersFromSheet();
       }
     }
@@ -774,8 +780,6 @@
       }
     }
 
-    // ==================== 📊 安全統計圖表邏輯 (Chart.js) ====================
-
     function destroyChart(chartId) {
       if (chartInstances[chartId]) {
         chartInstances[chartId].destroy();
@@ -788,7 +792,6 @@
       if (orders.length === 0) return;
 
       try {
-        // 1. 訂單狀態分布圓餅圖
         const statusCounts = {};
         STATUS_OPTIONS.forEach(st => statusCounts[st] = 0);
         orders.forEach(o => {
@@ -815,7 +818,6 @@
           });
         }
 
-        // 2. 財務與發票狀態雙層環形圖
         const payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         const invCounts = { "未開發票": 0, "已開發票": 0 };
 
@@ -845,7 +847,6 @@
           });
         }
 
-        // 3. 月度業績與銷售趨勢
         const monthlySales = {};
         orders.forEach(o => {
           let monthKey = "未歸類";
@@ -879,7 +880,6 @@
           });
         }
 
-        // 4. 業務銷售績效排行榜
         const salesPerf = {};
         orders.forEach(o => {
           const s = o.sales || "未知業務";
@@ -911,7 +911,6 @@
           });
         }
 
-        // 5. 硬體設備銷售與保固覆蓋統計
         const hwCounts = {};
         const hwWarrantyCounts = {};
 
