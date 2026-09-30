@@ -4,167 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AISO 聯盟一體機 - 訂單管理系統</title>
-  <!-- 引入 Tailwind CSS 美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800">
 
-  <!-- 頂部導覽列與頁籤切換 -->
-  <header class="bg-indigo-600 text-white p-4 shadow-lg sticky top-0 z-40">
-    <div class="max-w-[98%] mx-auto flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-6">
-        <h1 class="text-2xl font-bold tracking-wide">AISO 聯盟一體機訂單管理系統</h1>
-        
-        <!-- 主頁面頁籤切換 -->
-        <nav class="flex bg-indigo-800/50 p-1 rounded-lg">
-          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer">
-            📋 訂單列表
-          </button>
-          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer">
-            📊 數據統計與分析
-          </button>
-        </nav>
-      </div>
-
-      <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer">
+  <!-- 頂部導覽列 -->
+  <header class="bg-indigo-600 text-white p-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-wide">AISO 聯盟一體機訂單管理系統</h1>
+      <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg font-medium shadow transition">
         + 新增訂單 (業務專用)
       </button>
     </div>
   </header>
 
   <main class="max-w-[98%] mx-auto py-6">
-
-    <!-- ==================== 頁籤 1: 訂單列表 ==================== -->
-    <section id="sectionOrders">
-      <!-- 篩選與搜尋列 -->
-      <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
-        <div class="flex flex-wrap gap-4 items-center">
-          <div>
-            <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
-            <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
-              <option value="ALL">全部狀態</option>
-              <option value="待處理">待處理</option>
-              <option value="已領貨">已領貨</option>
-              <option value="出貨中">出貨中</option>
-              <option value="出貨完成">出貨完成</option>
-              <option value="已安裝">已安裝</option>
-              <option value="到府維修">到府維修</option>
-              <option value="換貨處理中">換貨處理中</option>
-              <option value="重新出貨">重新出貨</option>
-              <option value="退貨處理">退貨處理</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
-            <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
-              <option value="ALL">全部</option>
-              <option value="未開發票">未開發票</option>
-              <option value="已開發票">已開發票</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1 cursor-pointer">
-            <span id="refreshIcon">🔄</span> 重新整理資料
-          </button>
-          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
-        </div>
-      </div>
-
-      <!-- 訂單列表表格 -->
-      <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[1600px]">
-          <thead class="bg-slate-100 border-b border-slate-200">
-            <tr>
-              <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶/ERP</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊與保固</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊與保固</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款餘額</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">物流資訊</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
-            </tr>
-          </thead>
-          <tbody id="orderTableBody">
-            <tr><td colspan="11" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ==================== 頁籤 2: 數據統計與分析 ==================== -->
-    <section id="sectionAnalytics" class="hidden space-y-6">
-      <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+    <!-- 篩選與搜尋列 -->
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex flex-wrap gap-4 items-center">
         <div>
-          <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboard</h2>
-          <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據。</p>
+          <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
+          <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+            <option value="ALL">全部狀態</option>
+            <option value="待處理">待處理</option>
+            <option value="已領貨">已領貨</option>
+            <option value="出貨中">出貨中</option>
+            <option value="出貨完成">出貨完成</option>
+            <option value="已安裝">已安裝</option>
+            <option value="到府維修">到府維修</option>
+            <option value="換貨處理中">換貨處理中</option>
+            <option value="重新出貨">重新出貨</option>
+            <option value="退貨處理">退貨處理</option>
+          </select>
         </div>
-        <button onclick="window.print()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
-          🖨️ 列印 / 導出 PDF 報表
+        <div>
+          <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
+          <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+            <option value="ALL">全部</option>
+            <option value="未開發票">未開發票</option>
+            <option value="已開發票">已開發票</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1">
+          <span id="refreshIcon">🔄</span> 重新整理資料
         </button>
+        <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號、窗口..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
       </div>
+    </div>
 
-      <!-- 統計圖表與數據卡片 Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="analyticsGrid">
-        
-        <!-- 區塊 1: 訂單狀態分布比例 -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
-            <span>🍕</span> 訂單狀況比例分布
-          </h3>
-          <div id="chartStatusList" class="space-y-3">
-            <!-- 動態生成進度條 -->
-          </div>
-        </div>
-
-        <!-- 區塊 2: 財務與發票統計 -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
-            <span>💳</span> 財務與收款狀況彙整
-          </h3>
-          <div id="chartFinanceList" class="space-y-3">
-            <!-- 動態生成 -->
-          </div>
-        </div>
-
-        <!-- 區塊 3: 月度銷售業績趨勢 -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
-          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
-            <span>📈</span> 月度銷售業績趨勢 (NT$)
-          </h3>
-          <div id="chartMonthlyList" class="space-y-3">
-            <!-- 動態生成 -->
-          </div>
-        </div>
-
-        <!-- 區塊 4: 業務銷售績效排行榜 -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
-            <span>🏆</span> 業務銷售績效排行榜
-          </h3>
-          <div id="chartSalesRankList" class="space-y-3">
-            <!-- 動態生成 -->
-          </div>
-        </div>
-
-        <!-- 區塊 5: 硬體機種銷售與保固統計 -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-1.5">
-            <span>💻</span> 硬體機種銷售與保固覆蓋
-          </h3>
-          <div id="chartHardwareList" class="space-y-3">
-            <!-- 動態生成 -->
-          </div>
-        </div>
-
-      </div>
-    </section>
-
+    <!-- 訂單列表表格 -->
+    <div class="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[1600px]">
+        <thead class="bg-slate-100 border-b border-slate-200">
+          <tr>
+            <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶/ERP</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊與保固</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊與保固</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款餘額</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">物流資訊</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄</th>
+            <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody">
+          <tr><td colspan="11" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 
   <!-- 建立 / 編輯訂單 Modal -->
@@ -215,7 +128,7 @@
           </div>
         </div>
 
-        <!-- 保固區塊 -->
+        <!-- 保固區塊 (非必填) -->
         <div class="bg-amber-50/60 p-3 rounded-lg border border-amber-200 space-y-3">
           <div class="text-xs font-bold text-amber-800 flex items-center gap-1">🛡️ 保固資訊設定 (選填)</div>
           
@@ -317,8 +230,8 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100 cursor-pointer">取消</button>
-          <button type="submit" id="submitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700 cursor-pointer">儲存訂單</button>
+          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100">取消</button>
+          <button type="submit" id="submitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">儲存訂單</button>
         </div>
       </form>
     </div>
@@ -332,8 +245,8 @@
       <input type="hidden" id="currentOrderId">
       <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2 text-sm mb-4"></textarea>
       <div class="flex justify-end gap-2">
-        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm cursor-pointer">取消</button>
-        <button onclick="saveNote()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm cursor-pointer">新增紀錄</button>
+        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm">取消</button>
+        <button onclick="saveNote()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm">新增紀錄</button>
       </div>
     </div>
   </div>
@@ -341,109 +254,16 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
 
+    // 全部訂單狀態清單
     const STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
 
     let orders = [];
 
-    // 全局 JSONP 回呼接收
-    window.handleSheetData = function(data) {
-      const refreshIcon = document.getElementById("refreshIcon");
-      if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-
-      try {
-        if (!Array.isArray(data)) {
-          renderOrders();
-          return;
-        }
-
-        orders = data.map(item => {
-          const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
-          
-          let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
-          let formattedShipDate = shipDateRaw;
-          if (shipDateRaw && String(shipDateRaw).includes("T")) {
-            formattedShipDate = String(shipDateRaw).split("T")[0];
-          }
-
-          const formatDate = (val) => {
-            if (!val) return "";
-            return String(val).includes("T") ? String(val).split("T")[0] : String(val);
-          };
-
-          return {
-            orderId: orderId,
-            customer: item["B"] || item["客戶名稱"] || "",
-            sales: item["C"] || item["業務姓名"] || "",
-            hardware: item["D"] || item["硬體資訊"] || "",
-            software: item["E"] || item["軟體資訊"] || "",
-            amount: parseFloat(item["F"] || item["總金額"] || 0),
-            paymentStatus: item["G"] || item["付款狀態"] || "未付款",
-            invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
-            status: item["I"] || item["訂單狀態"] || "待處理",
-            fileUrl: item["J"] || item["檔案連結"] || "",
-            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
-            shipDate: formattedShipDate || "-",
-            erpId: item["M"] || item["ERP編號"] || "",
-            deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
-            logisticsCompany: item["O"] || item["物流公司"] || "",
-            logisticsNo: item["P"] || item["物流單號"] || "",
-            hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
-            hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
-            swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
-            swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
-            warrantyContact: item["U"] || item["保固對接窗口"] || "",
-            warrantyNote: item["V"] || item["保固注意事項"] || ""
-          };
-        }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
-
-        renderOrders();
-      } catch (e) {
-        console.error("解析錯誤:", e);
-        renderOrders();
-      }
-    };
-
-    function fetchOrdersFromSheet() {
-      const refreshIcon = document.getElementById("refreshIcon");
-      if (refreshIcon) refreshIcon.classList.add("animate-spin");
-
-      const oldScript = document.getElementById("jsonpScript");
-      if (oldScript) oldScript.remove();
-
-      const script = document.createElement("script");
-      script.id = "jsonpScript";
-      script.src = `${API_URL}?callback=handleSheetData&t=${new Date().getTime()}`;
-      script.onerror = function() {
-        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法載入資料，請確認網路連線。</td></tr>`;
-      };
-      document.body.appendChild(script);
-    }
-
-    function switchMainTab(tab) {
-      const btnOrders = document.getElementById("tabBtnOrders");
-      const btnAnalytics = document.getElementById("tabBtnAnalytics");
-      const secOrders = document.getElementById("sectionOrders");
-      const secAnalytics = document.getElementById("sectionAnalytics");
-
-      if (tab === 'orders') {
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer";
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer";
-        secOrders.classList.remove("hidden");
-        secAnalytics.classList.add("hidden");
-      } else {
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-white text-indigo-700 shadow transition cursor-pointer";
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium text-indigo-100 hover:text-white transition cursor-pointer";
-        secAnalytics.classList.remove("hidden");
-        secOrders.classList.add("hidden");
-        
-        renderAnalyticsUI();
-      }
-    }
-
     function toggleModal(id, show) {
       document.getElementById(id).classList.toggle("hidden", !show);
     }
+
+    const delay = ms => new Promise(res => setTimeout(res, ms));
 
     function handlePaymentStatusChange() {
       const pStatus = document.getElementById("paymentStatus").value;
@@ -511,6 +331,63 @@
       toggleModal("orderModal", true);
     }
 
+    async function fetchOrdersFromSheet() {
+      const refreshIcon = document.getElementById("refreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      try {
+        const response = await fetch(API_URL + "?t=" + new Date().getTime(), { redirect: 'follow' });
+        const data = await response.json();
+
+        orders = data.map(item => {
+          const orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
+          
+          let shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
+          let formattedShipDate = shipDateRaw;
+          if (shipDateRaw && String(shipDateRaw).includes("T")) {
+            formattedShipDate = String(shipDateRaw).split("T")[0];
+          }
+
+          const formatDate = (val) => {
+            if (!val) return "";
+            return String(val).includes("T") ? String(val).split("T")[0] : String(val);
+          };
+
+          return {
+            orderId: orderId,
+            customer: item["B"] || item["客戶名稱"] || "",
+            sales: item["C"] || item["業務姓名"] || "",
+            hardware: item["D"] || item["硬體資訊"] || "",
+            software: item["E"] || item["軟體資訊"] || "",
+            amount: parseFloat(item["F"] || item["總金額"] || 0),
+            paymentStatus: item["G"] || item["付款狀態"] || "未付款",
+            invoiceStatus: item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票",
+            status: item["I"] || item["訂單狀態"] || "待處理",
+            fileUrl: item["J"] || item["檔案連結"] || "",
+            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+            shipDate: formattedShipDate || "-",
+            erpId: item["M"] || item["ERP編號"] || "",
+            deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0),
+            logisticsCompany: item["O"] || item["物流公司"] || "",
+            logisticsNo: item["P"] || item["物流單號"] || "",
+            hwWarrantStart: formatDate(item["Q"] || item["硬體保固開始"]),
+            hwWarrantEnd: formatDate(item["R"] || item["硬體保固結束"]),
+            swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
+            swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
+            warrantyContact: item["U"] || item["保固對接窗口"] || "",
+            warrantyNote: item["V"] || item["保固注意事項"] || ""
+          };
+        }).filter(o => o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".");
+
+        renderOrders();
+      } catch (err) {
+        console.error("讀取失敗：", err);
+        document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">無法讀取資料，請確認網路連線。</td></tr>`;
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+      }
+    }
+
     function renderOrders() {
       const tbody = document.getElementById("orderTableBody");
       const filterSt = document.getElementById("filterStatus").value;
@@ -543,6 +420,7 @@
 
         const balance = Math.max(0, o.amount - o.deposit);
 
+        // 動態渲染訂單狀態下拉選單
         const statusOptionsHtml = STATUS_OPTIONS.map(st => 
           `<option value="${st}" ${o.status === st ? 'selected' : ''}>${st}</option>`
         ).join('');
@@ -563,7 +441,7 @@
             <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.hardware}">${o.hardware || '-'}</div>
             ${(o.hwWarrantStart || o.hwWarrantEnd) ? `
               <div class="text-[11px] text-amber-700 bg-amber-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.hwWarrantStart \vert{}\vert{} '?'} ~${o.hwWarrantEnd || '?'}
+                🛡️ 保固: ${o.hwWarrantStart || '?'} ~ ${o.hwWarrantEnd || '?'}
               </div>
             ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
           </td>
@@ -571,14 +449,15 @@
             <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.software}">${o.software || '-'}</div>
             ${(o.swWarrantStart || o.swWarrantEnd) ? `
               <div class="text-[11px] text-indigo-700 bg-indigo-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.swWarrantStart \vert{}\vert{} '?'} ~${o.swWarrantEnd || '?'}
+                🛡️ 保固: ${o.swWarrantStart || '?'} ~ ${o.swWarrantEnd || '?'}
               </div>
             ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-700">NT$ ${o.amount.toLocaleString()}</div>
             ${o.paymentStatus === '已付訂金' ? `
-              <div class="text-xs text-emerald-600">已付訂金: $${o.deposit.toLocaleString()}</div>               <div class="text-xs text-rose-500 font-medium">餘額尾款: $${balance.toLocaleString()}</div>
+              <div class="text-xs text-emerald-600">已付訂金: $${o.deposit.toLocaleString()}</div>
+              <div class="text-xs text-rose-500 font-medium">餘額尾款: $${balance.toLocaleString()}</div>
             ` : ''}
           </td>
           <td class="p-3 text-xs">
@@ -588,20 +467,20 @@
             ` : '<span class="text-slate-300">-</span>'}
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white cursor-pointer">
+            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white">
               ${["未付款", "已付訂金", "已結清"].map(p => 
                 `<option value="${p}" ${String(o.paymentStatus).includes(p) ? 'selected' : ''}>${p}</option>`
               ).join('')}
             </select>
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 cursor-pointer ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
               <option value="未開發票" ${o.invoiceStatus === '未開發票' ? 'selected' : ''}>未開發票</option>
               <option value="已開發票" ${o.invoiceStatus === '已開發票' ? 'selected' : ''}>已開發票</option>
             </select>
           </td>
           <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer ${['到府維修','換貨處理中','重新出貨','退貨處理'].includes(o.status) ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : ''}">
+            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium ${['到府維修','換貨處理中','重新出貨','退貨處理'].includes(o.status) ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : ''}">
               ${statusOptionsHtml}
             </select>
           </td>
@@ -610,10 +489,10 @@
           </td>
           <td class="p-3">
             <div class="flex flex-col gap-1">
-              <button onclick="openOrderModal('${o.orderId}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">
+              <button onclick="openOrderModal('${o.orderId}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border">
                 ✏️ 編輯
               </button>
-              <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200 cursor-pointer">
+              <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200">
                 + 備註
               </button>
               ${o.fileUrl ? `<a href="${o.fileUrl}" target="_blank" class="text-xs text-blue-500 underline">附件</a>` : ''}
@@ -679,7 +558,7 @@
           body: JSON.stringify(payload)
         });
 
-        await new Promise(res => setTimeout(res, 1500));
+        await delay(1500);
         fetchOrdersFromSheet();
 
       } catch(err) {
@@ -720,7 +599,7 @@
           })
         });
 
-        await new Promise(res => setTimeout(res, 1000));
+        await delay(1000);
         fetchOrdersFromSheet();
       }
     }
@@ -741,154 +620,6 @@
       }
     }
 
-    // ==================== 📊 原生 HTML/CSS 純淨統計分析 (不卡死、超極速) ====================
-
-    function renderAnalyticsUI() {
-      if (orders.length === 0) return;
-
-      const totalCount = orders.length;
-
-      // 1. 訂單狀態分布
-      const statusCounts = {};
-      STATUS_OPTIONS.forEach(st => statusCounts[st] = 0);
-      orders.forEach(o => {
-        const st = o.status || "待處理";
-        statusCounts[st] = (statusCounts[st] || 0) + 1;
-      });
-
-      const chartStatusList = document.getElementById('chartStatusList');
-      chartStatusList.innerHTML = STATUS_OPTIONS.map(st => {
-        const count = statusCounts[st] || 0;
-        const pct = Math.round((count / totalCount) * 100) || 0;
-        return `
-          <div>
-            <div class="flex justify-between text-xs font-medium mb-1">
-              <span>${st}</span>
-              <span>${count} 筆 (${pct}%)</span>
-            </div>
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div class="bg-indigo-600 h-2.5 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // 2. 財務與發票統計
-      let totalAmountSum = 0;
-      let totalDepositSum = 0;
-      let totalBalanceSum = 0;
-      let invCount = 0;
-
-      orders.forEach(o => {
-        totalAmountSum += o.amount;
-        totalDepositSum += o.deposit;
-        if (o.paymentStatus === '已付訂金') {
-          totalBalanceSum += Math.max(0, o.amount - o.deposit);
-        } else if (o.paymentStatus === '未付款') {
-          totalBalanceSum += o.amount;
-        }
-        if (o.invoiceStatus === '已開發票') invCount++;
-      });
-
-      const chartFinanceList = document.getElementById('chartFinanceList');
-      chartFinanceList.innerHTML = `
-        <div class="grid grid-cols-2 gap-3 text-center">
-          <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-            <div class="text-xs text-slate-500">總成交金額</div>
-            <div class="text-lg font-bold text-indigo-700">NT$ ${totalAmountSum.toLocaleString()}</div>
-          </div>
-          <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-            <div class="text-xs text-slate-500">已收訂金總額</div>
-            <div class="text-lg font-bold text-emerald-700">NT$ ${totalDepositSum.toLocaleString()}</div>
-          </div>
-          <div class="bg-rose-50 p-3 rounded-lg border border-rose-100">
-            <div class="text-xs text-slate-500">待收尾款餘額</div>
-            <div class="text-lg font-bold text-rose-600">NT$ ${totalBalanceSum.toLocaleString()}</div>
-          </div>
-          <div class="bg-purple-50 p-3 rounded-lg border border-purple-100">
-            <div class="text-xs text-slate-500">已開發票比例</div>
-            <div class="text-lg font-bold text-purple-700">${Math.round((invCount/totalCount)*100) || 0}% (${invCount}/${totalCount})</div>
-          </div>
-        </div>
-      `;
-
-      // 3. 月度銷售趨勢
-      const monthlySales = {};
-      orders.forEach(o => {
-        let monthKey = "未歸類";
-        if (o.shipDate && o.shipDate.includes("-")) {
-          monthKey = o.shipDate.substring(0, 7);
-        }
-        monthlySales[monthKey] = (monthlySales[monthKey] || 0) + o.amount;
-      });
-
-      const maxMonthAmount = Math.max(...Object.values(monthlySales), 1);
-      const chartMonthlyList = document.getElementById('chartMonthlyList');
-      chartMonthlyList.innerHTML = Object.keys(monthlySales).sort().map(m => {
-        const amt = monthlySales[m];
-        const pct = Math.round((amt / maxMonthAmount) * 100);
-        return `
-          <div>
-            <div class="flex justify-between text-xs font-medium mb-1">
-              <span>📅 ${m}</span>
-              <span class="font-bold text-slate-700">NT$ ${amt.toLocaleString()}</span>
-            </div>
-            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-              <div class="bg-emerald-500 h-3 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // 4. 業務排行榜
-      const salesPerf = {};
-      orders.forEach(o => {
-        const s = o.sales || "未知業務";
-        salesPerf[s] = (salesPerf[s] || 0) + o.amount;
-      });
-
-      const sortedSales = Object.keys(salesPerf).sort((a,b) => salesPerf[b] - salesPerf[a]);
-      const maxSalesAmt = Math.max(...Object.values(salesPerf), 1);
-
-      const chartSalesRankList = document.getElementById('chartSalesRankList');
-      chartSalesRankList.innerHTML = sortedSales.map((s, idx) => {
-        const amt = salesPerf[s];
-        const pct = Math.round((amt / maxSalesAmt) * 100);
-        return `
-          <div>
-            <div class="flex justify-between text-xs font-medium mb-1">
-              <span>第 ${idx+1} 名: 👤 ${s}</span>
-              <span class="font-bold text-slate-700">NT$ ${amt.toLocaleString()}</span>
-            </div>
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div class="bg-cyan-500 h-2.5 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // 5. 硬體機種統計
-      const hwCounts = {};
-      orders.forEach(o => {
-        let model = o.hardware ? o.hardware.split('/')[0].split(' ')[0].trim() : "未指定型號";
-        if (!model) model = "未指定型號";
-        hwCounts[model] = (hwCounts[model] || 0) + 1;
-      });
-
-      const chartHardwareList = document.getElementById('chartHardwareList');
-      chartHardwareList.innerHTML = Object.keys(hwCounts).map(m => {
-        const count = hwCounts[m];
-        const pct = Math.round((count / totalCount) * 100);
-        return `
-          <div class="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100">
-            <span class="text-xs font-medium text-slate-700">💻 ${m}</span>
-            <span class="text-xs font-bold text-indigo-600">${count} 台 (${pct}%)</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 啟動讀取
     fetchOrdersFromSheet();
   </script>
 </body>
