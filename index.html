@@ -372,7 +372,7 @@
     var orders = [];
     var chartInstances = {};
 
-    // 1. JSONP 接收處理：絕對防爆與強健型格式解析
+    // 1. JSONP 接收處理：安全解析 Google Sheet 回傳資料
     window.handleSheetData = function(data) {
       var refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
@@ -446,7 +446,7 @@
       script.src = API_URL + "?callback=handleSheetData&t=" + new Date().getTime();
       script.onerror = function() {
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線 Google Sheet 失敗，請確認後端部署權限。</td></tr>';
+        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線 Google Sheet 失敗，請確認網路與 Apps Script 設定。</td></tr>';
       };
       document.body.appendChild(script);
     }
@@ -543,7 +543,7 @@
       toggleModal("orderModal", true);
     }
 
-    // 4. 渲染表格 UI
+    // 4. 渲染表格 UI (精準字串串接，防止語法解析錯誤)
     function renderOrders() {
       var tbody = document.getElementById("orderTableBody");
       var filterSt = document.getElementById("filterStatus").value;
@@ -580,79 +580,79 @@
           return '<option value="' + st + '" ' + (o.status === st ? 'selected' : '') + '>' + st + '</option>';
         }).join('');
 
-        tr.innerHTML = `
-          <td class="p-3">
-            <div class="font-mono font-bold text-indigo-600">${o.orderId}</div>
-            <div class="font-medium text-slate-800">${o.customer || '-'}</div>
-            <div class="text-xs text-slate-400">業務: ${o.sales || '-'}</div>
-            ${o.erpId ? `<div class="text-xs font-mono text-indigo-500 bg-indigo-50 inline-block px-1 rounded mt-1">ERP: ${o.erpId}</div>` : ''}
-          </td>
-          <td class="p-3">
-            <span class="inline-block bg-slate-100 px-2 py-1 rounded text-xs font-mono font-medium text-slate-700">
-              📅 ${o.shipDate}
-            </span>
-          </td>
-          <td class="p-3 text-xs">
-            <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.hardware}">${o.hardware || '-'}</div>
-            ${(o.hwWarrantStart || o.hwWarrantEnd) ? `
-              <div class="text-[11px] text-amber-700 bg-amber-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.hwWarrantStart \vert{}\vert{} '?'} ~${o.hwWarrantEnd || '?'}
-              </div>
-            ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
-          </td>
-          <td class="p-3 text-xs">
-            <div class="font-medium text-slate-800 truncate max-w-[160px]" title="${o.software}">${o.software || '-'}</div>
-            ${(o.swWarrantStart || o.swWarrantEnd) ? `
-              <div class="text-[11px] text-indigo-700 bg-indigo-50 p-1 rounded mt-1">
-                🛡️ 保固: ${o.swWarrantStart \vert{}\vert{} '?'} ~${o.swWarrantEnd || '?'}
-              </div>
-            ` : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>'}
-          </td>
-          <td class="p-3">
-            <div class="font-semibold text-slate-700">NT$ ${o.amount.toLocaleString()}</div>
-            ${o.paymentStatus === '已付訂金' ? `
-              <div class="text-xs text-emerald-600">已付訂金: $${o.deposit.toLocaleString()}</div>               <div class="text-xs text-rose-500 font-medium">餘額尾款: $${balance.toLocaleString()}</div>
-            ` : ''}
-          </td>
-          <td class="p-3 text-xs">
-            ${(o.logisticsCompany || o.logisticsNo) ? `
-              <div class="font-medium text-slate-700">${o.logisticsCompany || '物流'}</div>
-              <div class="font-mono text-slate-500">${o.logisticsNo || '-'}</div>
-            ` : '<span class="text-slate-300">-</span>'}
-          </td>
-          <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'paymentStatus', this.value)" class="text-xs border rounded p-1 bg-white cursor-pointer">
-              ${["未付款", "已付訂金", "已結清"].map(function(p) { 
-                return '<option value="' + p + '" ' + (String(o.paymentStatus).indexOf(p) !== -1 ? 'selected' : '') + '>' + p + '</option>';
-              }).join('')}
-            </select>
-          </td>
-          <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'invoiceStatus', this.value)" class="text-xs font-semibold border rounded p-1 cursor-pointer ${o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
-              <option value="未開發票" ${o.invoiceStatus === '未開發票' ? 'selected' : ''}>未開發票</option>
-              <option value="已開發票" ${o.invoiceStatus === '已開發票' ? 'selected' : ''}>已開發票</option>
-            </select>
-          </td>
-          <td class="p-3">
-            <select onchange="updateOrderField('${o.orderId}', 'status', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer ${['到府維修','換貨處理中','重新出貨','退貨處理'].indexOf(o.status) !== -1 ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : ''}">
-              ${statusOptionsHtml}
-            </select>
-          </td>
-          <td class="p-3 max-w-[180px]">
-            ${notesHtml}
-          </td>
-          <td class="p-3">
-            <div class="flex flex-col gap-1">
-              <button onclick="openOrderModal('${o.orderId}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">
-                ✏️ 編輯
-              </button>
-              <button onclick="openNoteModal('${o.orderId}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200 cursor-pointer">
-                + 備註
-              </button>
-              ${o.fileUrl ? `<a href="${o.fileUrl}" target="_blank" class="text-xs text-blue-500 underline">附件</a>` : ''}
-            </div>
-          </td>
-        `;
+        var paymentOptionsHtml = ["未付款", "已付訂金", "已結清"].map(function(p) {
+          return '<option value="' + p + '" ' + (String(o.paymentStatus).indexOf(p) !== -1 ? 'selected' : '') + '>' + p + '</option>';
+        }).join('');
+
+        var erpBadgeHtml = o.erpId ? '<div class="text-xs font-mono text-indigo-500 bg-indigo-50 inline-block px-1 rounded mt-1">ERP: ' + o.erpId + '</div>' : '';
+        var hwWarrantyHtml = (o.hwWarrantStart || o.hwWarrantEnd) 
+          ? '<div class="text-[11px] text-amber-700 bg-amber-50 p-1 rounded mt-1">🛡️ 保固: ' + (o.hwWarrantStart || '?') + ' ~ ' + (o.hwWarrantEnd || '?') + '</div>'
+          : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>';
+
+        var swWarrantyHtml = (o.swWarrantStart || o.swWarrantEnd)
+          ? '<div class="text-[11px] text-indigo-700 bg-indigo-50 p-1 rounded mt-1">🛡️ 保固: ' + (o.swWarrantStart || '?') + ' ~ ' + (o.swWarrantEnd || '?') + '</div>'
+          : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>';
+
+        var depositBalanceHtml = o.paymentStatus === '已付訂金'
+          ? '<div class="text-xs text-emerald-600">已付訂金: $' + o.deposit.toLocaleString() + '</div><div class="text-xs text-rose-500 font-medium">餘額尾款: $' + balance.toLocaleString() + '</div>'
+          : '';
+
+        var logisticsHtml = (o.logisticsCompany || o.logisticsNo)
+          ? '<div class="font-medium text-slate-700">' + (o.logisticsCompany || '物流') + '</div><div class="font-mono text-slate-500">' + (o.logisticsNo || '-') + '</div>'
+          : '<span class="text-slate-300">-</span>';
+
+        var invClass = o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200';
+        var statusClass = ['到府維修','換貨處理中','重新出貨','退貨處理'].indexOf(o.status) !== -1 ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : '';
+        var fileLinkHtml = o.fileUrl ? '<a href="' + o.fileUrl + '" target="_blank" class="text-xs text-blue-500 underline">附件</a>' : '';
+
+        tr.innerHTML = 
+          '<td class="p-3">' +
+            '<div class="font-mono font-bold text-indigo-600">' + o.orderId + '</div>' +
+            '<div class="font-medium text-slate-800">' + (o.customer || '-') + '</div>' +
+            '<div class="text-xs text-slate-400">業務: ' + (o.sales || '-') + '</div>' +
+            erpBadgeHtml +
+          '</td>' +
+          '<td class="p-3">' +
+            '<span class="inline-block bg-slate-100 px-2 py-1 rounded text-xs font-mono font-medium text-slate-700">📅 ' + o.shipDate + '</span>' +
+          '</td>' +
+          '<td class="p-3 text-xs">' +
+            '<div class="font-medium text-slate-800 truncate max-w-[160px]" title="' + o.hardware + '">' + (o.hardware || '-') + '</div>' +
+            hwWarrantyHtml +
+          '</td>' +
+          '<td class="p-3 text-xs">' +
+            '<div class="font-medium text-slate-800 truncate max-w-[160px]" title="' + o.software + '">' + (o.software || '-') + '</div>' +
+            swWarrantyHtml +
+          '</td>' +
+          '<td class="p-3">' +
+            '<div class="font-semibold text-slate-700">NT$ ' + o.amount.toLocaleString() + '</div>' +
+            depositBalanceHtml +
+          '</td>' +
+          '<td class="p-3 text-xs">' + logisticsHtml + '</td>' +
+          '<td class="p-3">' +
+            '<select onchange="updateOrderField(\'' + o.orderId + '\', \'paymentStatus\', this.value)" class="text-xs border rounded p-1 bg-white cursor-pointer">' +
+              paymentOptionsHtml +
+            '</select>' +
+          '</td>' +
+          '<td class="p-3">' +
+            '<select onchange="updateOrderField(\'' + o.orderId + '\', \'invoiceStatus\', this.value)" class="text-xs font-semibold border rounded p-1 cursor-pointer ' + invClass + '">' +
+              '<option value="未開發票" ' + (o.invoiceStatus === '未開發票' ? 'selected' : '') + '>未開發票</option>' +
+              '<option value="已開發票" ' + (o.invoiceStatus === '已開發票' ? 'selected' : '') + '>已開發票</option>' +
+            '</select>' +
+          '</td>' +
+          '<td class="p-3">' +
+            '<select onchange="updateOrderField(\'' + o.orderId + '\', \'status\', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer ' + statusClass + '">' +
+              statusOptionsHtml +
+            '</select>' +
+          '</td>' +
+          '<td class="p-3 max-w-[180px]">' + notesHtml + '</td>' +
+          '<td class="p-3">' +
+            '<div class="flex flex-col gap-1">' +
+              '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
+              '<button onclick="openNoteModal(\'' + o.orderId + '\')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded border border-indigo-200 cursor-pointer">+ 備註</button>' +
+              fileLinkHtml +
+            '</div>' +
+          '</td>';
+
         tbody.appendChild(tr);
       });
     }
@@ -774,7 +774,7 @@
       }
     }
 
-    // 5. 圖表銷毀與安全繪製
+    // 5. 圖表繪製防爆邏輯
     function destroyChart(chartId) {
       if (chartInstances[chartId]) {
         try { chartInstances[chartId].destroy(); } catch(e) {}
@@ -784,13 +784,13 @@
 
     function safeRenderCharts() {
       if (typeof Chart === 'undefined') {
-        console.warn("Chart.js 圖表庫未成功載入。");
+        console.warn("Chart.js 未載入，跳過繪圖。");
         return;
       }
       if (!orders || orders.length === 0) return;
 
       try {
-        // 1. 狀態圓餅圖
+        // 1. 訂單狀態分布圖
         var statusCounts = {};
         STATUS_OPTIONS.forEach(function(st) { statusCounts[st] = 0; });
         orders.forEach(function(o) {
@@ -817,7 +817,7 @@
           });
         }
 
-        // 2. 財務雙層環形圖
+        // 2. 財務與發票圖
         var payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         var invCounts = { "未開發票": 0, "已開發票": 0 };
 
@@ -847,7 +847,7 @@
           });
         }
 
-        // 3. 月度金額柱狀圖
+        // 3. 月度金額趨勢圖
         var monthlySales = {};
         orders.forEach(function(o) {
           var monthKey = "未歸類";
@@ -913,7 +913,7 @@
           });
         }
 
-        // 5. 硬體統計長條圖
+        // 5. 硬體機種統計圖
         var hwCounts = {};
         var hwWarrantyCounts = {};
 
@@ -959,7 +959,7 @@
           });
         }
       } catch (err) {
-        console.error("繪製圖表安全捕捉排除錯誤:", err);
+        console.error("繪製圖表防爆捕捉排除錯誤:", err);
       }
     }
 
@@ -973,7 +973,7 @@
       link.click();
     }
 
-    // 啟動直接向試算表請求 JSONP 資料
+    // 啟動直接拉取試算表資料
     fetchOrdersFromSheet();
   </script>
 </body>
