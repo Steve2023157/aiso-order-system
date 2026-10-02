@@ -335,7 +335,7 @@
 
         <!-- 保固區塊 -->
         <div class="bg-amber-50/60 p-3 rounded-lg border border-amber-200 space-y-3">
-          <div class="text-xs font-bold text-amber-800 flex items-center gap-1">🛡️ 保固資訊設定 (選填)</div>
+          <div class="text-xs font-bold text-amber-800 flex items-center gap-1">🛡 保固資訊設定 (選填)</div>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -397,11 +397,11 @@
         <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100 grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium mb-1 text-slate-700">物流公司 (選填)</label>
-            <input type="text" id="logisticsCompany" placeholder="例：黑貓宅急便 / 新竹物流" class="w-full border rounded-lg p-2 text-sm bg-white">
+            <input type="text" id="logisticsCompany" placeholder="例：順豐 / 黑貓宅急便 / 新竹物流" class="w-full border rounded-lg p-2 text-sm bg-white">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1 text-slate-700">物流單號 (選填)</label>
-            <input type="text" id="logisticsNo" placeholder="例：9083928102" class="w-full border rounded-lg p-2 text-sm bg-white">
+            <label class="block text-sm font-medium mb-1 text-slate-700">物流單號 (多筆可換行或用逗號隔開)</label>
+            <textarea id="logisticsNo" rows="2" placeholder="例：&#10;SF5158435674788&#10;SF5152539908627" class="w-full border rounded-lg p-2 text-sm bg-white font-mono"></textarea>
           </div>
         </div>
 
@@ -464,20 +464,19 @@
     var orders = [];
     var chartInstances = {};
 
-    // 💡 核心演算法：解析硬體文字欄位中的倍數 (例如 "GB10 *2", "* 1台", "華碩筆電 * 2", "x2")
+    // 💡 核心演算法：解析硬體文字欄位中的倍數
     function parseHardwareQty(hwStr) {
       if (!hwStr) return 1;
       var str = String(hwStr);
-      // 正則表達式抓取 [*xX]\s*(\d+) 格式
       var match = str.match(/[*xX]\s*(\d+)/);
       if (match && match[1]) {
         var qty = parseInt(match[1], 10);
         return isNaN(qty) || qty <= 0 ? 1 : qty;
       }
-      return 1; // 預設 1 台
+      return 1;
     }
 
-    // 💡 提取硬體型號名稱（去掉倍數尾巴）
+    // 💡 提取硬體型號名稱
     function parseHardwareModel(hwStr) {
       if (!hwStr) return "未指定型號";
       var str = String(hwStr).trim();
@@ -563,7 +562,15 @@
       document.body.appendChild(script);
     }
 
-    // 🚚 出貨預警追蹤邏輯（精準台數加總：抓取 *2 / *1台 之數量）
+    // 🚚 單獨點擊單號直接另開順豐官方查詢頁
+    function openSingleTracking(no) {
+      if (!no) return;
+      var cleanNo = String(no).trim();
+      var targetUrl = "https://htm.sf-express.com/tw/tc/dynamic_function/waybill/#search/bill-number/" + encodeURIComponent(cleanNo);
+      window.open(targetUrl, "_blank");
+    }
+
+    // 🚚 出貨預警追蹤邏輯
     function openShipmentTrackerModal() {
       var tbody5 = document.getElementById("trackerTable5Body");
       var tbody10 = document.getElementById("trackerTable10Body");
@@ -610,11 +617,9 @@
         }
       });
 
-      // 更新 KPI 筆數與總台數
       document.getElementById("trackerKpi5").innerText = list5.length + " 筆廠商 / 共 " + totalQty5 + " 台";
       document.getElementById("trackerKpi10").innerText = list10.length + " 筆廠商 / 共 " + totalQty10 + " 台";
 
-      // 繪製 5 天內表格
       if (list5.length === 0) {
         tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無 5 天內待出貨之訂單</td></tr>';
       } else {
@@ -645,7 +650,6 @@
         });
       }
 
-      // 繪製 6~10 天表格
       if (list10.length === 0) {
         tbody10.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天待出貨之訂單</td></tr>';
       } else {
@@ -781,6 +785,7 @@
                             String(o.sales).toLowerCase().indexOf(search) !== -1 || 
                             String(o.erpId).toLowerCase().indexOf(search) !== -1 || 
                             String(o.warrantyContact).toLowerCase().indexOf(search) !== -1 || 
+                            String(o.logisticsNo).toLowerCase().indexOf(search) !== -1 ||
                             String(o.orderId).toLowerCase().indexOf(search) !== -1;
         return matchSt && matchInv && matchSearch;
       }).forEach(function(o) {
@@ -814,8 +819,25 @@
           ? '<div class="text-xs text-emerald-600">已付訂金: $' + o.deposit.toLocaleString() + '</div><div class="text-xs text-rose-500 font-medium">餘額尾款: $' + balance.toLocaleString() + '</div>'
           : '';
 
+        // 🚚 核心優化：將物流單號（包含多筆拆分）轉換為獨立可點擊超連結
+        var logisticsNosHtml = '<span class="text-slate-300">-</span>';
+        if (o.logisticsNo && o.logisticsNo.trim() !== "") {
+          // 支援換行、逗號、分號或空格拆分單號
+          var rawNos = o.logisticsNo.split(/[\n,;\s]+/);
+          var isSF = !o.logisticsCompany || o.logisticsCompany.indexOf('順豐') !== -1 || o.logisticsNo.toUpperCase().indexOf('SF') !== -1;
+
+          logisticsNosHtml = rawNos.filter(function(n){ return n.trim() !== ""; }).map(function(n) {
+            var cleanNo = n.trim();
+            if (isSF) {
+              return '<div class="font-mono"><a href="javascript:void(0)" onclick="openSingleTracking(\'' + cleanNo + '\')" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold flex items-center gap-1" title="點擊前往順豐官網查詢/截圖 🔍">' + cleanNo + ' <span class="text-[10px]">🔗</span></a></div>';
+            } else {
+              return '<div class="font-mono text-slate-600">' + cleanNo + '</div>';
+            }
+          }).join('');
+        }
+
         var logisticsHtml = (o.logisticsCompany || o.logisticsNo)
-          ? '<div class="font-medium text-slate-700">' + (o.logisticsCompany || '物流') + '</div><div class="font-mono text-slate-500">' + (o.logisticsNo || '-') + '</div>'
+          ? '<div class="font-medium text-slate-700">' + (o.logisticsCompany || '物流') + '</div>' + logisticsNosHtml
           : '<span class="text-slate-300">-</span>';
 
         var invClass = o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200';
@@ -998,7 +1020,6 @@
       }
     }
 
-    // 💡 統計圖表：支援倍數 (*2, *1台) 解析之硬體台數統計
     function safeRenderCharts() {
       if (typeof Chart === 'undefined') {
         console.warn("Chart.js 未載入，跳過繪圖。");
@@ -1126,7 +1147,6 @@
           });
         }
 
-        // 💻 硬體機種台數精準累加（相容 *2, * 1台 格式）
         var hwCounts = {};
         var hwWarrantyCounts = {};
 
@@ -1186,7 +1206,6 @@
       link.click();
     }
 
-    // 啟動直接請求 JSONP 資料
     fetchOrdersFromSheet();
   </script>
 </body>
