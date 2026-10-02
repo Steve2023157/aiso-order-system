@@ -31,7 +31,7 @@
       <div class="flex items-center gap-3">
         <!-- 🚚 出貨預警追蹤按鈕 -->
         <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer flex items-center gap-1.5">
-          <span>🚚</span> 出貨預警追蹤 (未來5天/10天)
+          <span>🚚</span> 出貨預警追蹤 (逾期/5天/10天)
         </button>
         <button onclick="openOrderModal(null)" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium shadow transition cursor-pointer">
           + 新增訂單 (業務專用)
@@ -199,9 +199,9 @@
 
   </main>
 
-  <!-- 🚚 出貨預警追蹤 Modal -->
+  <!-- 🚚 出貨預警追蹤 Modal (優化：逾期案件獨立分離) -->
   <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-xl max-w-5xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 border-b pb-3">
         <div>
           <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -212,30 +212,61 @@
         <button onclick="toggleModal('shipmentTrackerModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 cursor-pointer">✕</button>
       </div>
 
-      <!-- 統計 KPI 卡片 -->
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex justify-between items-center">
+      <!-- 統計 KPI 三卡片 -->
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl flex justify-between items-center">
           <div>
-            <div class="text-xs font-semibold text-amber-800 mb-1">🚨 未來 5 天內預計出貨 (含今日/已安裝可出貨)</div>
-            <div id="trackerKpi5" class="text-2xl font-black text-amber-600">0 筆廠商 / 0 台</div>
+            <div class="text-xs font-semibold text-rose-800 mb-1">🚨 逾期 / 配送中需關注</div>
+            <div id="trackerKpiOverdue" class="text-xl font-black text-rose-600">0 筆廠商 / 0 台</div>
           </div>
-          <span class="text-3xl">⏰</span>
+          <span class="text-2xl">⚠️</span>
         </div>
-        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex justify-between items-center">
+        <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl flex justify-between items-center">
+          <div>
+            <div class="text-xs font-semibold text-amber-800 mb-1">⏰ 未來 5 天內預計出貨 (含今日)</div>
+            <div id="trackerKpi5" class="text-xl font-black text-amber-600">0 筆廠商 / 0 台</div>
+          </div>
+          <span class="text-2xl">⏳</span>
+        </div>
+        <div class="bg-indigo-50 border border-indigo-200 p-3.5 rounded-xl flex justify-between items-center">
           <div>
             <div class="text-xs font-semibold text-indigo-800 mb-1">📦 未來 6~10 天內預計出貨</div>
-            <div id="trackerKpi10" class="text-2xl font-black text-indigo-600">0 筆廠商 / 0 台</div>
+            <div id="trackerKpi10" class="text-xl font-black text-indigo-600">0 筆廠商 / 0 台</div>
           </div>
-          <span class="text-3xl">📅</span>
+          <span class="text-2xl">📅</span>
         </div>
       </div>
 
       <!-- 明細表格區 -->
       <div class="space-y-6">
-        <!-- 5 天內表格 -->
+        
+        <!-- 🚨 區塊 1：已逾期 / 出貨中未完成案件明細 -->
         <div>
-          <h3 class="text-sm font-bold text-amber-700 bg-amber-100/60 px-3 py-1.5 rounded-lg inline-block mb-3">
-            📍 未來 5 天內預計出貨案件明細 (含已安裝可出貨)
+          <h3 class="text-sm font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+            <span>🚨</span> 已過預計出貨日 / 配送中未完結案件
+          </h3>
+          <div class="border border-rose-200 rounded-lg overflow-x-auto bg-rose-50/10">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-rose-100/60 text-rose-900 border-b border-rose-200">
+                <tr>
+                  <th class="p-2.5">預計出貨日</th>
+                  <th class="p-2.5">訂單/ERP單號</th>
+                  <th class="p-2.5">客戶名稱</th>
+                  <th class="p-2.5">硬體需求與機型(台數)</th>
+                  <th class="p-2.5">業務/目前狀態</th>
+                </tr>
+              </thead>
+              <tbody id="trackerTableOverdueBody">
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">目前無逾期未結案件 🎉</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ⏰ 區塊 2：未來 5 天內預計出貨明細 (正常時程) -->
+        <div>
+          <h3 class="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+            <span>📍</span> 未來 5 天內預計出貨案件明細 (含今日/可出貨)
           </h3>
           <div class="border rounded-lg overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
@@ -249,16 +280,16 @@
                 </tr>
               </thead>
               <tbody id="trackerTable5Body">
-                <tr><td colspan="5" class="p-4 text-center text-slate-400">目前無 5 天內待出貨之訂單</td></tr>
+                <tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天內待出貨之訂單</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- 未來 6~10 天表格 -->
+        <!-- 📦 區塊 3：未來 6~10 天表格 -->
         <div>
-          <h3 class="text-sm font-bold text-indigo-700 bg-indigo-100/60 px-3 py-1.5 rounded-lg inline-block mb-3">
-            📍 未來 6~10 天內預計出貨明細
+          <h3 class="text-sm font-bold text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+            <span>📍</span> 未來 6~10 天內預計出貨明細
           </h3>
           <div class="border rounded-lg overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
@@ -277,6 +308,7 @@
             </table>
           </div>
         </div>
+
       </div>
 
       <div class="flex justify-end mt-6">
@@ -464,7 +496,6 @@
     var orders = [];
     var chartInstances = {};
 
-    // 💡 核心演算法：解析硬體文字欄位中的倍數
     function parseHardwareQty(hwStr) {
       if (!hwStr) return 1;
       var str = String(hwStr);
@@ -476,7 +507,6 @@
       return 1;
     }
 
-    // 💡 提取硬體型號名稱
     function parseHardwareModel(hwStr) {
       if (!hwStr) return "未指定型號";
       var str = String(hwStr).trim();
@@ -562,7 +592,6 @@
       document.body.appendChild(script);
     }
 
-    // 🚚 單獨點擊單號直接另開順豐官方查詢頁
     function openSingleTracking(no) {
       if (!no) return;
       var cleanNo = String(no).trim();
@@ -570,24 +599,29 @@
       window.open(targetUrl, "_blank");
     }
 
-    // 🚚 出貨預警追蹤邏輯
+    // 🚚 出貨預警追蹤邏輯 (優化：完美分離逾期與未來天數)
     function openShipmentTrackerModal() {
+      var tbodyOverdue = document.getElementById("trackerTableOverdueBody");
       var tbody5 = document.getElementById("trackerTable5Body");
       var tbody10 = document.getElementById("trackerTable10Body");
 
+      tbodyOverdue.innerHTML = "";
       tbody5.innerHTML = "";
       tbody10.innerHTML = "";
 
       var now = new Date();
       var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+      var listOverdue = [];
       var list5 = [];
       var list10 = [];
 
+      var totalQtyOverdue = 0;
       var totalQty5 = 0;
       var totalQty10 = 0;
 
       orders.forEach(function(o) {
+        // 只排除真正完結的「出貨完成」與「退貨處理」
         if (o.status === "出貨完成" || o.status === "退貨處理") return;
         if (!o.shipDate || o.shipDate === "-") return;
 
@@ -605,10 +639,13 @@
 
         var diffTime = targetDate.getTime() - today.getTime();
         var diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
         var qty = parseHardwareQty(o.hardware);
 
-        if (diffDays <= 5) {
+        // 分流邏輯：小於 0 天表示已經過了預計出貨日，獨立移至「逾期需關注區」
+        if (diffDays < 0) {
+          listOverdue.push({ order: o, daysLeft: diffDays, qty: qty });
+          totalQtyOverdue += qty;
+        } else if (diffDays >= 0 && diffDays <= 5) {
           list5.push({ order: o, daysLeft: diffDays, qty: qty });
           totalQty5 += qty;
         } else if (diffDays >= 6 && diffDays <= 10) {
@@ -617,22 +654,39 @@
         }
       });
 
+      // 更新 KPI 三個卡片數字
+      document.getElementById("trackerKpiOverdue").innerText = listOverdue.length + " 筆廠商 / 共 " + totalQtyOverdue + " 台";
       document.getElementById("trackerKpi5").innerText = list5.length + " 筆廠商 / 共 " + totalQty5 + " 台";
       document.getElementById("trackerKpi10").innerText = list10.length + " 筆廠商 / 共 " + totalQty10 + " 台";
 
+      // 1. 繪製「逾期/配送中」表格
+      if (listOverdue.length === 0) {
+        tbodyOverdue.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無逾期未結案件 🎉</td></tr>';
+      } else {
+        listOverdue.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
+          var o = item.order;
+          var daysAgo = Math.abs(item.daysLeft);
+          var statusBadgeClass = o.status === '出貨中' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800 font-bold';
+
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-rose-100/30";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-rose-600">' + o.shipDate + ' <span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded ml-1">⚠️ 逾期 ' + daysAgo + ' 天</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-indigo-600">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-rose-600">(' + item.qty + '台)</span></td>' +
+            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> <span class="text-xs px-1.5 py-0.5 rounded ' + statusBadgeClass + '">' + o.status + '</span></div></td>';
+          tbodyOverdue.appendChild(tr);
+        });
+      }
+
+      // 2. 繪製「0~5天預計出貨」表格
       if (list5.length === 0) {
-        tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無 5 天內待出貨之訂單</td></tr>';
+        tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天內待出貨之訂單</td></tr>';
       } else {
         list5.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
           var o = item.order;
-          var badgeText = "";
-          if (item.daysLeft < 0) {
-            badgeText = "⚠️ 逾期 " + Math.abs(item.daysLeft) + " 天未出";
-          } else if (item.daysLeft === 0) {
-            badgeText = "🔥 今日預計出貨";
-          } else {
-            badgeText = item.daysLeft + " 天後交貨";
-          }
+          var badgeText = item.daysLeft === 0 ? "🔥 今日預計出貨" : item.daysLeft + " 天後交貨";
 
           var statusBadge = o.status === '已安裝'
             ? '<span class="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded">🟢 已安裝 (可出貨)</span>'
@@ -641,7 +695,7 @@
           var tr = document.createElement("tr");
           tr.className = "border-b hover:bg-amber-50/40";
           tr.innerHTML = 
-            '<td class="p-2.5 font-mono font-semibold text-amber-700">' + o.shipDate + ' <span class="text-[10px] ' + (item.daysLeft <= 0 ? 'bg-rose-100 text-rose-800 font-bold' : 'bg-amber-100 text-amber-800') + ' px-1.5 py-0.5 rounded ml-1">' + badgeText + '</span></td>' +
+            '<td class="p-2.5 font-mono font-semibold text-amber-700">' + o.shipDate + ' <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded ml-1">' + badgeText + '</span></td>' +
             '<td class="p-2.5 font-mono font-bold text-indigo-600">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
             '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
             '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-amber-600">(' + item.qty + '台)</span></td>' +
@@ -650,6 +704,7 @@
         });
       }
 
+      // 3. 繪製「6~10天預計出貨」表格
       if (list10.length === 0) {
         tbody10.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天待出貨之訂單</td></tr>';
       } else {
@@ -819,10 +874,8 @@
           ? '<div class="text-xs text-emerald-600">已付訂金: $' + o.deposit.toLocaleString() + '</div><div class="text-xs text-rose-500 font-medium">餘額尾款: $' + balance.toLocaleString() + '</div>'
           : '';
 
-        // 🚚 核心優化：將物流單號（包含多筆拆分）轉換為獨立可點擊超連結
         var logisticsNosHtml = '<span class="text-slate-300">-</span>';
         if (o.logisticsNo && o.logisticsNo.trim() !== "") {
-          // 支援換行、逗號、分號或空格拆分單號
           var rawNos = o.logisticsNo.split(/[\n,;\s]+/);
           var isSF = !o.logisticsCompany || o.logisticsCompany.indexOf('順豐') !== -1 || o.logisticsNo.toUpperCase().indexOf('SF') !== -1;
 
