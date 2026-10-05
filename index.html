@@ -107,25 +107,50 @@
 
     <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
     <section id="sectionAnalytics" class="hidden space-y-6">
-      <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-        <div>
-          <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
-          <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
+      <!-- 頂部控制與時間篩選列 -->
+      <div class="bg-white p-4 rounded-xl shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
+            <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
+          </div>
+          <button onclick="safeRenderCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
+            🔄 重新計算數據圖表
+          </button>
         </div>
-        <button onclick="safeRenderCharts()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
-          🔄 重新計算數據圖表
-        </button>
+
+        <!-- 💡 新增：時間區間快速篩選按鈕與自訂日期選擇器 -->
+        <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-sm">
+          <span class="font-bold text-slate-700 flex items-center gap-1">📅 統計時間範圍：</span>
+          <div class="flex bg-slate-100 p-1 rounded-lg gap-1">
+            <button onclick="setChartTimeFilter('1m')" id="btnTime1m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近一個月</button>
+            <button onclick="setChartTimeFilter('3m')" id="btnTime3m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近三個月</button>
+            <button onclick="setChartTimeFilter('6m')" id="btnTime6m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近半年</button>
+            <button onclick="setChartTimeFilter('1y')" id="btnTime1y" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近一年</button>
+            <button onclick="setChartTimeFilter('all')" id="btnTimeAll" class="px-3 py-1 rounded text-xs font-medium bg-white text-indigo-600 font-bold shadow-sm transition cursor-pointer">全部時間</button>
+          </div>
+
+          <div class="flex items-center gap-1.5 ml-auto text-xs text-slate-500">
+            <span>自訂起訖：</span>
+            <input type="date" id="chartStartDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-2 py-1 bg-white outline-none">
+            <span>至</span>
+            <input type="date" id="chartEndDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-2 py-1 bg-white outline-none">
+          </div>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- 圖表 1: 訂單狀態分布圖 (Pie Chart) -->
+        <!-- 圖表 1: 簡化版訂單狀態分布圖 (只抓：待處理、出貨中、出貨完成) -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>🍕</span> 訂單狀況比例分布 (Pie Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartStatusPie', '訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
+            <div>
+              <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
+                <span>🍕</span> 出貨核心狀態分布 (Pie Chart)
+              </h3>
+              <p class="text-[11px] text-slate-400">僅統計：待處理、出貨中、出貨完成</p>
+            </div>
+            <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
               📥 下載 PNG
             </button>
           </div>
@@ -239,8 +264,6 @@
 
       <!-- 明細表格區 -->
       <div class="space-y-6">
-        
-        <!-- 🚨 區塊 1：已逾期 / 出貨中未完成案件明細 -->
         <div>
           <h3 class="text-sm font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
             <span>🚨</span> 已過預計出貨日 / 配送中未完結案件
@@ -263,7 +286,6 @@
           </div>
         </div>
 
-        <!-- ⏰ 區塊 2：未來 5 天內預計出貨明細 (正常時程) -->
         <div>
           <h3 class="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
             <span>📍</span> 未來 5 天內預計出貨案件明細 (含今日/可出貨)
@@ -286,7 +308,6 @@
           </div>
         </div>
 
-        <!-- 📦 區塊 3：未來 6~10 天表格 -->
         <div>
           <h3 class="text-sm font-bold text-indigo-700 bg-indigo-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
             <span>📍</span> 未來 6~10 天內預計出貨明細
@@ -308,7 +329,6 @@
             </table>
           </div>
         </div>
-
       </div>
 
       <div class="flex justify-end mt-6">
@@ -495,26 +515,22 @@
 
     var orders = [];
     var chartInstances = {};
+    var currentChartTimeRange = 'all'; // 預設全部時間
 
-    // 💡 自動生成 DN + YYYYMMDD + 001 流水號演算法
     function autoGenerateDNCode() {
       var editOrderId = document.getElementById("editOrderId").value;
-      // 若為編輯舊訂單模式，不自動覆蓋原單號
       if (editOrderId) return;
 
       var dateVal = document.getElementById("shipDate").value;
       if (!dateVal) return;
 
-      // 1. 轉成 YYYYMMDD 格式 (如 2026-09-24 -> 20260924)
       var ymd = dateVal.replace(/-/g, "");
       var prefix = "DN" + ymd;
 
-      // 2. 比對當前所有訂單中，開頭為 DN20260924 的單號最大順序碼
       var maxSeq = 0;
       orders.forEach(function(o) {
         var id = String(o.orderId || "").trim();
         if (id.indexOf(prefix) === 0) {
-          // 抓取最後 3 位數字
           var seqStr = id.substring(prefix.length);
           var seqNum = parseInt(seqStr, 10);
           if (!isNaN(seqNum) && seqNum > maxSeq) {
@@ -523,7 +539,6 @@
         }
       });
 
-      // 3. 流水號 +1 並自動補零成 3 位數 (例: 1 -> 001, 12 -> 012)
       var nextSeq = maxSeq + 1;
       var seqPadded = String(nextSeq).padStart(3, '0');
 
@@ -842,7 +857,6 @@
         document.getElementById("modalTitle").innerText = "建立 AISO 一體機新訂單";
         document.getElementById("customOrderId").disabled = false;
         document.getElementById("initialNoteBox").classList.remove("hidden");
-        // 自動依照今日日期計算 DN 編號
         autoGenerateDNCode();
       }
 
@@ -1103,6 +1117,40 @@
       }
     }
 
+    // 💡 時間按鈕切換邏輯
+    function setChartTimeFilter(range) {
+      currentChartTimeRange = range;
+      var btns = ['1m', '3m', '6m', '1y', 'all'];
+      btns.forEach(function(b) {
+        var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) {
+          if (b === range) {
+            btn.className = "px-3 py-1 rounded text-xs font-medium bg-white text-indigo-600 font-bold shadow-sm transition cursor-pointer";
+          } else {
+            btn.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
+          }
+        }
+      });
+
+      // 清空自訂日期欄位
+      document.getElementById("chartStartDate").value = "";
+      document.getElementById("chartEndDate").value = "";
+
+      safeRenderCharts();
+    }
+
+    function onCustomChartDateChange() {
+      // 當手動選擇日期區間時，按鈕取消高亮
+      var btns = ['1m', '3m', '6m', '1y', 'all'];
+      btns.forEach(function(b) {
+        var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) btn.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
+      });
+      currentChartTimeRange = 'custom';
+      safeRenderCharts();
+    }
+
+    // 💡 全圖表安全繪製 (含時間過濾與簡化圓餅圖)
     function safeRenderCharts() {
       if (typeof Chart === 'undefined') {
         console.warn("Chart.js 未載入，跳過繪圖。");
@@ -1110,12 +1158,54 @@
       }
       if (!orders || orders.length === 0) return;
 
+      var now = new Date();
+      var startDate = null;
+      var endDate = null;
+
+      // 解析時間區間
+      if (currentChartTimeRange === '1m') {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      } else if (currentChartTimeRange === '3m') {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      } else if (currentChartTimeRange === '6m') {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      } else if (currentChartTimeRange === '1y') {
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      } else if (currentChartTimeRange === 'custom') {
+        var sVal = document.getElementById("chartStartDate").value;
+        var eVal = document.getElementById("chartEndDate").value;
+        if (sVal) startDate = new Date(sVal);
+        if (eVal) {
+          endDate = new Date(eVal);
+          endDate.setHours(23, 59, 59, 999);
+        }
+      }
+
+      // 依時間過濾訂單
+      var filteredOrders = orders.filter(function(o) {
+        if (!startDate && !endDate) return true;
+        if (!o.shipDate || o.shipDate === "-") return false;
+
+        var cleanStr = o.shipDate.replace(/\//g, "-").trim();
+        var parts = cleanStr.split("-");
+        if (parts.length < 2) return false;
+
+        var oDate = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2] ? parseInt(parts[2], 10) : 1);
+        if (startDate && oDate < startDate) return false;
+        if (endDate && oDate > endDate) return false;
+        return true;
+      });
+
       try {
-        var statusCounts = {};
-        STATUS_OPTIONS.forEach(function(st) { statusCounts[st] = 0; });
-        orders.forEach(function(o) {
+        // 1. 簡化版圓餅圖 (只抓：待處理、出貨中、出貨完成)
+        var targetStatuses = ["待處理", "出貨中", "出貨完成"];
+        var statusCounts = { "待處理": 0, "出貨中": 0, "出貨完成": 0 };
+        
+        filteredOrders.forEach(function(o) {
           var st = o.status || "待處理";
-          statusCounts[st] = (statusCounts[st] || 0) + 1;
+          if (targetStatuses.indexOf(st) !== -1) {
+            statusCounts[st] += 1;
+          }
         });
 
         destroyChart('chartStatusPie');
@@ -1124,23 +1214,21 @@
           chartInstances['chartStatusPie'] = new Chart(canvasPie.getContext('2d'), {
             type: 'pie',
             data: {
-              labels: Object.keys(statusCounts),
+              labels: ['待處理', '出貨中', '出貨完成'],
               datasets: [{
-                data: Object.values(statusCounts),
-                backgroundColor: [
-                  '#94a3b8', '#60a5fa', '#3b82f6', '#10b981', '#059669', 
-                  '#f59e0b', '#f97316', '#ef4444', '#dc2626'
-                ]
+                data: [statusCounts['待處理'], statusCounts['出貨中'], statusCounts['出貨完成']],
+                backgroundColor: ['#94a3b8', '#3b82f6', '#10b981']
               }]
             },
             options: { responsive: true, maintainAspectRatio: false }
           });
         }
 
+        // 2. 財務與發票雙環圖
         var payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         var invCounts = { "未開發票": 0, "已開發票": 0 };
 
-        orders.forEach(function(o) {
+        filteredOrders.forEach(function(o) {
           payCounts[o.paymentStatus] = (payCounts[o.paymentStatus] || 0) + 1;
           invCounts[o.invoiceStatus] = (invCounts[o.invoiceStatus] || 0) + 1;
         });
@@ -1166,8 +1254,9 @@
           });
         }
 
+        // 3. 月度銷售金額長條圖
         var monthlySales = {};
-        orders.forEach(function(o) {
+        filteredOrders.forEach(function(o) {
           var monthKey = "未歸類";
           if (o.shipDate && o.shipDate.indexOf("-") !== -1) {
             monthKey = o.shipDate.substring(0, 7);
@@ -1199,8 +1288,9 @@
           });
         }
 
+        // 4. 業務銷售排行榜
         var salesPerf = {};
-        orders.forEach(function(o) {
+        filteredOrders.forEach(function(o) {
           var s = o.sales || "未知業務";
           salesPerf[s] = (salesPerf[s] || 0) + o.amount;
         });
@@ -1230,10 +1320,11 @@
           });
         }
 
+        // 5. 硬體機種與保固台數圖
         var hwCounts = {};
         var hwWarrantyCounts = {};
 
-        orders.forEach(function(o) {
+        filteredOrders.forEach(function(o) {
           var model = parseHardwareModel(o.hardware);
           var qty = parseHardwareQty(o.hardware);
 
