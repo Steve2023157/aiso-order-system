@@ -9,7 +9,6 @@
   <!-- 引入 Chart.js 圖表庫 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <style>
-    /* 定義 TPI 企業主色 */
     :root {
       --primary: #662E8D;
     }
@@ -24,12 +23,11 @@
   <header class="bg-white text-[#662E8D] border-b border-slate-200 shadow-sm sticky top-0 z-40">
     <div class="max-w-[98%] mx-auto flex flex-wrap justify-between items-center p-3 gap-4">
       <div class="flex items-center gap-6">
-        <!-- TPI SOFTWARE LOGO (使用官方15週年標誌) -->
+        <!-- TPI SOFTWARE LOGO (內嵌向量SVG Base64，本機開啟100%不破圖) -->
         <div class="flex items-center gap-4">
-          <img src="https://www.tpisoftware.com/images/header/logo-pad-icon--en-15years.png" 
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 50'><text y='36' font-family='Arial, sans-serif' font-size='30' font-weight='black' fill='%23662E8D'>TPI</text><text x='62' y='36' font-family='Arial, sans-serif' font-size='20' font-weight='bold' fill='%23444444'>SOFTWARE</text></svg>" 
                alt="TPI SOFTWARE Logo" 
-               class="h-12 w-auto object-contain" 
-               onerror="this.onerror=null; this.src='https://www.tpisoftware.com/images/logo.png';">
+               class="h-10 w-auto object-contain">
           <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
           <h1 class="text-xl font-bold tracking-wide text-[#662E8D]">AISO 聯盟一體機訂單管理系統</h1>
         </div>
@@ -46,17 +44,21 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- 🚚 出貨預警追蹤按鈕 -->
-        <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition cursor-pointer flex items-center gap-1.5">
-          <span>🚚</span> 出貨預警追蹤 (逾期/5天/10天)
+        <!-- 📌 待辦追蹤事項按鈕 -->
+        <button onclick="openTodoListModal()" class="bg-purple-100 hover:bg-purple-200 text-[#662E8D] border border-purple-300 px-3.5 py-2 rounded-lg font-bold text-sm shadow-sm transition cursor-pointer flex items-center gap-1.5">
+          <span>📌</span> 待辦追蹤 <span id="todoBadgeCount" class="bg-[#662E8D] text-white text-xs px-2 py-0.5 rounded-full font-black">0</span>
         </button>
-        <button onclick="openOrderModal(null)" class="bg-[#662E8D] hover:bg-[#522373] text-white px-4 py-2 rounded-lg font-medium shadow-sm transition cursor-pointer">
+        <!-- 🚚 出貨預警追蹤按鈕 -->
+        <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-lg font-medium text-sm shadow-sm transition cursor-pointer flex items-center gap-1.5">
+          <span>🚚</span> 出貨預警 (逾期/5天/10天)
+        </button>
+        <button onclick="openOrderModal(null)" class="bg-[#662E8D] hover:bg-[#522373] text-white px-4 py-2 rounded-lg font-medium text-sm shadow-sm transition cursor-pointer">
           + 新增訂單 (業務專用)
         </button>
       </div>
     </div>
 
-    <!-- 閱讀進度條 (紫 -> 綠漸層，固定於標頭下方) -->
+    <!-- 閱讀進度條 -->
     <div class="w-full bg-slate-100 h-1">
       <div id="progressBar" class="h-1 bg-gradient-to-r from-[#662E8D] to-emerald-500 w-0 transition-all duration-150"></div>
     </div>
@@ -116,7 +118,7 @@
               <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
               <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
               <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄</th>
+              <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄 (含追蹤)</th>
               <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
             </tr>
           </thead>
@@ -129,7 +131,6 @@
 
     <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
     <section id="sectionAnalytics" class="hidden space-y-6">
-      <!-- 頂部控制與時間篩選列 -->
       <div class="bg-white p-4 rounded-xl shadow-sm space-y-4 border border-slate-100">
         <div class="flex justify-between items-center">
           <div>
@@ -141,7 +142,6 @@
           </button>
         </div>
 
-        <!-- 時間區間快速篩選按鈕列 -->
         <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-sm">
           <span class="font-bold text-slate-700 flex items-center gap-1">📅 統計時間範圍：</span>
           <div class="flex bg-slate-100 p-1 rounded-lg gap-1">
@@ -163,7 +163,6 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- 圖表 1: 簡化版圓餅圖 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
             <div>
@@ -181,7 +180,6 @@
           </div>
         </div>
 
-        <!-- 圖表 2: 財務與發票狀態統計 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
@@ -196,7 +194,6 @@
           </div>
         </div>
 
-        <!-- 圖表 3: 月度業績趨勢 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
@@ -211,7 +208,6 @@
           </div>
         </div>
 
-        <!-- 圖表 4: 業務銷售排行榜 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
@@ -226,7 +222,6 @@
           </div>
         </div>
 
-        <!-- 圖表 5: 硬體機種銷售與保固統計 -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
@@ -246,12 +241,48 @@
 
   </main>
 
-  <!-- 右下角 Go-to-Top 頂部按鈕 (紫色主題) -->
+  <!-- 右下角 Go-to-Top 頂部按鈕 -->
   <button id="btnGoToTop" onclick="scrollToTop()" class="fixed bottom-6 right-6 bg-[#662E8D] hover:bg-[#522373] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 hover:-translate-y-1 flex items-center justify-center cursor-pointer">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
     </svg>
   </button>
+
+  <!-- 📌 全域待辦追蹤清單 Modal -->
+  <div id="todoListModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <div>
+          <h2 class="text-xl font-bold text-[#662E8D] flex items-center gap-2">
+            <span>📌</span> 售後與服務待辦追蹤事項清單
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">即時列出所有勾選需要追蹤之備註，可直接在此勾選完成</p>
+        </div>
+        <button onclick="toggleModal('todoListModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 cursor-pointer">✕</button>
+      </div>
+
+      <div class="border rounded-lg overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-purple-50 text-[#662E8D] border-b">
+            <tr>
+              <th class="p-2.5 text-center w-12">狀態</th>
+              <th class="p-2.5 w-32">訂單單號 / 客戶</th>
+              <th class="p-2.5">待辦追蹤內容</th>
+              <th class="p-2.5 w-24">負責業務</th>
+              <th class="p-2.5 text-center w-28">操作</th>
+            </tr>
+          </thead>
+          <tbody id="todoTableBody">
+            <tr><td colspan="5" class="p-6 text-center text-slate-400">目前尚無需要追蹤的待辦事項 🎉</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button onclick="toggleModal('todoListModal', false)" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium transition cursor-pointer">關閉選單</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 🚚 出貨預警追蹤 Modal -->
   <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
@@ -266,7 +297,6 @@
         <button onclick="toggleModal('shipmentTrackerModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 cursor-pointer">✕</button>
       </div>
 
-      <!-- 統計 KPI 卡片 -->
       <div class="grid grid-cols-3 gap-3 mb-6">
         <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl flex justify-between items-center">
           <div>
@@ -291,7 +321,6 @@
         </div>
       </div>
 
-      <!-- 明細表格區 -->
       <div class="space-y-6">
         <div>
           <h3 class="text-sm font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
@@ -523,21 +552,31 @@
     </div>
   </div>
 
-  <!-- 新增備註 Modal -->
+  <!-- 📌 新增售後/備註 Modal -->
   <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
-      <h3 class="text-lg font-bold mb-2">新增售後/庫存備註</h3>
-      <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-4"></p>
+      <h3 class="text-lg font-bold mb-1 text-slate-800">新增售後/庫存備註</h3>
+      <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-4 font-bold"></p>
       <input type="hidden" id="currentOrderId">
-      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2 text-sm mb-4"></textarea>
+      
+      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2.5 text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
+      
+      <div class="flex items-center gap-2 bg-purple-50 p-2.5 rounded-lg border border-purple-200 mb-4 cursor-pointer" onclick="document.getElementById('chkNeedTrack').click()">
+        <input type="checkbox" id="chkNeedTrack" onclick="event.stopPropagation()" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 focus:ring-[#662E8D] cursor-pointer">
+        <label for="chkNeedTrack" class="text-xs font-bold text-[#662E8D] cursor-pointer select-none">
+          📌 標記為需要追蹤事項 (例: 待辦、預約維修、料件更換)
+        </label>
+      </div>
+
       <div class="flex justify-end gap-2">
-        <button onclick="toggleModal('noteModal', false)" class="px-3 py-1.5 border rounded-lg text-sm cursor-pointer">取消</button>
-        <button onclick="saveNote()" class="px-3 py-1.5 bg-[#662E8D] text-white rounded-lg text-sm cursor-pointer">新增紀錄</button>
+        <button onclick="toggleModal('noteModal', false)" class="px-3.5 py-1.5 border rounded-lg text-sm cursor-pointer hover:bg-slate-50">取消</button>
+        <button onclick="saveNote()" class="px-3.5 py-1.5 bg-[#662E8D] hover:bg-[#522373] text-white rounded-lg text-sm cursor-pointer shadow-sm">新增紀錄</button>
       </div>
     </div>
   </div>
 
   <script>
+    // 💡 套用最新發布的完整 Google Apps Script API 網址
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
 
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
@@ -546,16 +585,13 @@
     var chartInstances = {};
     var currentChartTimeRange = 'all';
 
-    // 💡 滾動條與回到頂部按鈕事件
     window.onscroll = function() {
-      // 1. 進度條計算
       var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
       var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
       var scrolled = (winScroll / height) * 100;
       var pBar = document.getElementById("progressBar");
       if (pBar) pBar.style.width = scrolled + "%";
 
-      // 2. Go-to-Top 按鈕顯隱 (超過 400px 淡入)
       var btnTop = document.getElementById("btnGoToTop");
       if (btnTop) {
         if (winScroll > 400) {
@@ -625,6 +661,7 @@
 
       try {
         if (!data || !Array.isArray(data)) {
+          orders = [];
           renderOrders();
           return;
         }
@@ -686,13 +723,28 @@
       var oldScript = document.getElementById("jsonpScript");
       if (oldScript) oldScript.remove();
 
+      var fetchTimer = setTimeout(function() {
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+        var tbody = document.getElementById("orderTableBody");
+        if (tbody && orders.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">⚠️️ 連線 Google Sheet 逾時，請檢查 Google Apps Script 的權限是否設為「所有人 (Anyone)」。</td></tr>';
+        }
+      }, 12000);
+
       var script = document.createElement("script");
       script.id = "jsonpScript";
       script.src = API_URL + "?callback=handleSheetData&t=" + new Date().getTime();
-      script.onerror = function() {
-        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500">連線失敗，請確認網路與 Apps Script 設定。</td></tr>';
+      
+      script.onload = function() {
+        clearTimeout(fetchTimer);
       };
+      
+      script.onerror = function() {
+        clearTimeout(fetchTimer);
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">連線失敗，請確認網路與 Apps Script 設定。</td></tr>';
+      };
+
       document.body.appendChild(script);
     }
 
@@ -701,6 +753,90 @@
       var cleanNo = String(no).trim();
       var targetUrl = "https://htm.sf-express.com/tw/tc/dynamic_function/waybill/#search/bill-number/" + encodeURIComponent(cleanNo);
       window.open(targetUrl, "_blank");
+    }
+
+    function openTodoListModal() {
+      renderTodoList();
+      toggleModal('todoListModal', true);
+    }
+
+    function renderTodoList() {
+      var tbody = document.getElementById("todoTableBody");
+      tbody.innerHTML = "";
+
+      var pendingTodos = [];
+
+      orders.forEach(function(o) {
+        if (Array.isArray(o.notes)) {
+          o.notes.forEach(function(n, index) {
+            if (n.indexOf("📌") !== -1) {
+              var isDone = n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1;
+              pendingTodos.push({
+                order: o,
+                noteIndex: index,
+                noteText: n,
+                isDone: isDone
+              });
+            }
+          });
+        }
+      });
+
+      if (pendingTodos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">目前尚無需要追蹤的待辦事項 🎉</td></tr>';
+        return;
+      }
+
+      pendingTodos.forEach(function(todo) {
+        var o = todo.order;
+        var tr = document.createElement("tr");
+        tr.className = "border-b hover:bg-purple-50/30 text-xs " + (todo.isDone ? "bg-slate-50 opacity-60" : "");
+
+        var cleanText = todo.noteText.replace("📌 [待追蹤]", "").replace("📌 [已完成]", "").replace("✅", "").trim();
+        var chkHtml = '<input type="checkbox" ' + (todo.isDone ? 'checked' : '') + ' onchange="toggleTodoStatus(\'' + o.orderId + '\', ' + todo.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
+        var textStyle = todo.isDone ? "line-through text-slate-400" : "font-semibold text-slate-800";
+        var statusBadge = todo.isDone 
+          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已處理</span>'
+          : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold animate-pulse">待處理</span>';
+
+        tr.innerHTML = 
+          '<td class="p-2.5 text-center">' + chkHtml + '</td>' +
+          '<td class="p-2.5"><div class="font-bold text-[#662E8D] font-mono">' + o.orderId + '</div><div class="font-medium text-slate-700 truncate max-w-[120px]">' + o.customer + '</div></td>' +
+          '<td class="p-2.5"><div class="' + textStyle + ' mb-1">' + cleanText + '</div><div>' + statusBadge + '</div></td>' +
+          '<td class="p-2.5 text-slate-600">' + (o.sales || '-') + '</td>' +
+          '<td class="p-2.5 text-center"><button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-[11px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function toggleTodoStatus(orderId, noteIndex, isChecked) {
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex]) {
+        var originalNote = order.notes[noteIndex];
+        
+        if (isChecked) {
+          order.notes[noteIndex] = originalNote.replace("📌 [待追蹤]", "📌 [已完成] ✅");
+          if (order.notes[noteIndex].indexOf("📌") === -1) {
+            order.notes[noteIndex] = "📌 [已完成] ✅ " + originalNote;
+          }
+        } else {
+          order.notes[noteIndex] = originalNote.replace("📌 [已完成] ✅", "📌 [待追蹤]").replace("✅", "");
+        }
+
+        renderOrders();
+        renderTodoList();
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join("\n")
+          })
+        });
+      }
     }
 
     function openShipmentTrackerModal() {
@@ -927,8 +1063,11 @@
 
       tbody.innerHTML = "";
 
+      var totalPendingTodos = 0;
+
       if (!orders || orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-400">目前尚無訂單資料，或點擊右上角重新整理</td></tr>';
+        document.getElementById("todoBadgeCount").innerText = "0";
         return;
       }
 
@@ -946,9 +1085,20 @@
         var tr = document.createElement("tr");
         tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-sm";
         
-        var notesHtml = Array.isArray(o.notes) && o.notes.length > 0
-          ? o.notes.map(function(n) { return '<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">' + n + '</div>'; }).join('')
-          : '<div class="text-xs text-slate-400">-</div>';
+        var notesHtml = '<div class="text-xs text-slate-400">-</div>';
+        if (Array.isArray(o.notes) && o.notes.length > 0) {
+          notesHtml = o.notes.map(function(n) {
+            if (n.indexOf("📌") !== -1) {
+              if (n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1) {
+                return '<div class="text-xs text-slate-400 bg-slate-100 p-1.5 rounded mb-1 line-through">✅ ' + n.replace("📌 [已完成] ✅", "").trim() + '</div>';
+              } else {
+                totalPendingTodos++;
+                return '<div class="text-xs font-bold text-[#662E8D] bg-purple-50 p-1.5 rounded mb-1 border border-purple-200">📌 [待追蹤] ' + n.replace("📌 [待追蹤]", "").trim() + '</div>';
+              }
+            }
+            return '<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">' + n + '</div>';
+          }).join('');
+        }
 
         var balance = Math.max(0, o.amount - o.deposit);
 
@@ -1035,7 +1185,7 @@
               statusOptionsHtml +
             '</select>' +
           '</td>' +
-          '<td class="p-3 max-w-[180px]">' + notesHtml + '</td>' +
+          '<td class="p-3 max-w-[200px]">' + notesHtml + '</td>' +
           '<td class="p-3">' +
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
@@ -1046,6 +1196,8 @@
 
         tbody.appendChild(tr);
       });
+
+      document.getElementById("todoBadgeCount").innerText = totalPendingTodos;
     }
 
     async function submitOrder(e) {
@@ -1118,21 +1270,31 @@
       document.getElementById("currentOrderId").value = orderId;
       document.getElementById("noteTargetOrder").innerText = "針對單號: " + orderId;
       document.getElementById("newNoteText").value = "";
+      document.getElementById("chkNeedTrack").checked = false;
       toggleModal('noteModal', true);
     }
 
     async function saveNote() {
       var orderId = document.getElementById("currentOrderId").value;
       var text = document.getElementById("newNoteText").value.trim();
+      var needTrack = document.getElementById("chkNeedTrack").checked;
+      
       if (!text) return;
 
       var order = orders.find(function(o) { return o.orderId === orderId; });
       if (order) {
         if (!Array.isArray(order.notes)) order.notes = [];
         var dateStr = new Date().toLocaleDateString();
-        order.notes.push("[" + dateStr + "] " + text);
+        
+        var formattedNote = "[" + dateStr + "] " + text;
+        if (needTrack) {
+          formattedNote = "📌 [待追蹤] " + formattedNote;
+        }
+
+        order.notes.push(formattedNote);
 
         toggleModal('noteModal', false);
+        renderOrders();
 
         await fetch(API_URL, {
           method: "POST",
@@ -1246,7 +1408,6 @@
       });
 
       try {
-        // 1. 簡化版圓餅圖 (使用 TPI 紫色系與對比色)
         var targetStatuses = ["待處理", "出貨中", "出貨完成"];
         var statusCounts = { "待處理": 0, "出貨中": 0, "出貨完成": 0 };
         
@@ -1273,7 +1434,6 @@
           });
         }
 
-        // 2. 財務與發票雙環圖
         var payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         var invCounts = { "未開發票": 0, "已開發票": 0 };
 
@@ -1303,7 +1463,6 @@
           });
         }
 
-        // 3. 月度銷售金額長條圖
         var monthlySales = {};
         filteredOrders.forEach(function(o) {
           var monthKey = "未歸類";
@@ -1337,7 +1496,6 @@
           });
         }
 
-        // 4. 業務銷售排行榜
         var salesPerf = {};
         filteredOrders.forEach(function(o) {
           var s = o.sales || "未知業務";
@@ -1369,7 +1527,6 @@
           });
         }
 
-        // 5. 硬體機種與保固台數圖
         var hwCounts = {};
         var hwWarrantyCounts = {};
 
@@ -1417,16 +1574,6 @@
       } catch (err) {
         console.error("繪製圖表防爆捕捉排除錯誤:", err);
       }
-    }
-
-    function downloadChartCanvas(canvasId, titleName) {
-      var canvas = document.getElementById(canvasId);
-      if (!canvas) return;
-
-      var link = document.createElement('a');
-      link.download = "AISO圖表_" + titleName + "_" + new Date().toISOString().split('T')[0] + ".png";
-      link.href = canvas.toDataURL('image/png');
-      link.click();
     }
 
     fetchOrdersFromSheet();
