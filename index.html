@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統</title>
+  <title>AISO 聯盟一體機 - 訂單管理系統 (AI Agent 升級版)</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 引入 Chart.js 圖表庫 -->
@@ -23,7 +23,7 @@
   <header class="bg-white text-[#662E8D] border-b border-slate-200 shadow-sm sticky top-0 z-40">
     <div class="max-w-[98%] mx-auto flex flex-wrap justify-between items-center p-3 gap-4">
       <div class="flex items-center gap-6">
-        <!-- TPI SOFTWARE LOGO (內嵌向量SVG Base64，本機開啟100%不破圖) -->
+        <!-- TPI SOFTWARE LOGO -->
         <div class="flex items-center gap-4">
           <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 50'><text y='36' font-family='Arial, sans-serif' font-size='30' font-weight='black' fill='%23662E8D'>TPI</text><text x='62' y='36' font-family='Arial, sans-serif' font-size='20' font-weight='bold' fill='%23444444'>SOFTWARE</text></svg>" 
                alt="TPI SOFTWARE Logo" 
@@ -162,83 +162,47 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
-            <div>
-              <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-                <span>🍕</span> 出貨核心狀態分布 (Pie Chart)
-              </h3>
-              <p class="text-[11px] text-slate-400">僅統計：待處理、出貨中、出貨完成</p>
-            </div>
-            <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
+            <div><h3 class="font-bold text-slate-800 text-base">🍕 出貨核心狀態分布 (Pie Chart)</h3></div>
+            <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
           </div>
-          <div class="h-64 flex justify-center items-center">
-            <canvas id="chartStatusPie"></canvas>
-          </div>
+          <div class="h-64 flex justify-center items-center"><canvas id="chartStatusPie"></canvas></div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>💳</span> 財務收款與發票狀態 (Doughnut Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
+            <h3 class="font-bold text-slate-800 text-base">💳 財務收款與發票狀態 (Doughnut Chart)</h3>
+            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
           </div>
-          <div class="h-64 flex justify-center items-center">
-            <canvas id="chartFinanceDoughnut"></canvas>
-          </div>
+          <div class="h-64 flex justify-center items-center"><canvas id="chartFinanceDoughnut"></canvas></div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>📈</span> 月度銷售業績趨勢 (Bar Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
+            <h3 class="font-bold text-slate-800 text-base">📈 月度銷售業績趨勢 (Bar Chart)</h3>
+            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
           </div>
-          <div class="h-72">
-            <canvas id="chartMonthlyBar"></canvas>
-          </div>
+          <div class="h-72"><canvas id="chartMonthlyBar"></canvas></div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>🏆</span> 業務銷售業績排行榜 (Horizontal Bar Chart)
-            </h3>
-            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
+            <h3 class="font-bold text-slate-800 text-base">🏆 業務銷售業績排行榜 (Horizontal Bar Chart)</h3>
+            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
           </div>
-          <div class="h-72">
-            <canvas id="chartSalesRankBar"></canvas>
-          </div>
+          <div class="h-72"><canvas id="chartSalesRankBar"></canvas></div>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base flex items-center gap-1.5">
-              <span>💻</span> 硬體機種銷售台數與保固統計 (含倍數計算)
-            </h3>
-            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition cursor-pointer">
-              📥 下載 PNG
-            </button>
+            <h3 class="font-bold text-slate-800 text-base">💻 硬體機種銷售台數與保固統計</h3>
+            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
           </div>
-          <div class="h-72">
-            <canvas id="chartHardwareBar"></canvas>
-          </div>
+          <div class="h-72"><canvas id="chartHardwareBar"></canvas></div>
         </div>
-
       </div>
     </section>
-
   </main>
 
   <!-- 右下角 Go-to-Top 頂部按鈕 -->
@@ -247,6 +211,47 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
     </svg>
   </button>
+
+  <!-- 🐶 P醬 AI 智慧助理 (採用 1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x 圖片) -->
+  <div id="aiAgentContainer" class="fixed bottom-6 right-20 z-50">
+    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-[#662E8D] to-indigo-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2.5 hover:scale-105 transition-all duration-300 font-bold border-2 border-white/40 cursor-pointer">
+      <div class="w-8 h-8 rounded-full overflow-hidden border border-white/80 shadow-sm bg-white flex items-center justify-center shrink-0">
+        <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-full h-full object-cover">
+      </div>
+      <span class="text-sm">P醬</span>
+    </button>
+
+    <div id="aiPanel" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[480px]">
+      <div class="bg-[#662E8D] text-white p-3.5 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full overflow-hidden border border-white/80 shadow-sm bg-white flex items-center justify-center shrink-0">
+            <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-full h-full object-cover">
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">P醬 (AISO 訂單 AI Agent)</h3>
+            <p class="text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
+          </div>
+        </div>
+        <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-lg px-2">✕</button>
+      </div>
+
+      <div id="aiChatBox" class="flex-1 p-3 overflow-y-auto space-y-3 bg-slate-50 text-xs">
+        <div class="bg-white border p-3 rounded-xl shadow-sm text-slate-700">
+          👋 你好！我是 P醬。你可以直接問我：
+          <ul class="list-disc pl-4 mt-1.5 space-y-1 text-slate-500 font-medium">
+            <li>「幫我算李家宜這個月的總業績」</li>
+            <li>「哪些訂單目前處於逾期狀態？」</li>
+            <li>「整理麗高營造訂購的所有設備」</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="p-2.5 bg-white border-t flex gap-2">
+        <input type="text" id="aiInput" onkeydown="if(event.key==='Enter') sendAiMessage()" placeholder="詢問 P醬 (按 Enter 發送)..." class="flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#662E8D]">
+        <button onclick="sendAiMessage()" id="btnAiSend" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">發送</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 📌 全域待辦追蹤清單 Modal -->
   <div id="todoListModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
@@ -284,7 +289,7 @@
     </div>
   </div>
 
-  <!-- 🚚 出貨預警追蹤 Modal -->
+  <!-- 🚚 出貨預警 Modal -->
   <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl max-w-5xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -576,14 +581,61 @@
   </div>
 
   <script>
-    // 💡 套用最新發布的完整 Google Apps Script API 網址
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
-
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
-
     var orders = [];
     var chartInstances = {};
     var currentChartTimeRange = 'all';
+
+    function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
+
+    // 🤖 安全由 Google Apps Script 後端驅動的 AI Agent 對話機制
+    async function sendAiMessage() {
+      var inputEl = document.getElementById('aiInput');
+      var userMsg = inputEl.value.trim();
+      if (!userMsg) return;
+
+      var chatBox = document.getElementById('aiChatBox');
+
+      var userBubble = document.createElement('div');
+      userBubble.className = 'bg-[#662E8D] text-white p-2.5 rounded-xl ml-8 shadow-sm font-medium';
+      userBubble.innerText = userMsg;
+      chatBox.appendChild(userBubble);
+      inputEl.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      var loadingBubble = document.createElement('div');
+      loadingBubble.className = 'bg-white border p-2.5 rounded-xl mr-8 shadow-sm text-slate-400 animate-pulse';
+      loadingBubble.innerText = '🐶 P醬 正在分析試算表資料中...';
+      chatBox.appendChild(loadingBubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        var res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "ai_query", question: userMsg })
+        });
+        
+        var data = await res.json();
+        chatBox.removeChild(loadingBubble);
+
+        var aiBubble = document.createElement('div');
+        aiBubble.className = 'bg-white border p-3 rounded-xl mr-6 shadow-sm text-slate-800 leading-relaxed';
+        aiBubble.innerText = data.reply || "⚠️ P醬 暫時無法處理，請檢查後端 API 設定。";
+        
+        chatBox.appendChild(aiBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+      } catch (err) {
+        chatBox.removeChild(loadingBubble);
+        var errBubble = document.createElement('div');
+        errBubble.className = 'bg-rose-50 border border-rose-200 text-rose-600 p-2.5 rounded-xl mr-6';
+        errBubble.innerText = '⚠️ 連線錯誤：' + err.message;
+        chatBox.appendChild(errBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
 
     window.onscroll = function() {
       var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
@@ -727,7 +779,7 @@
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
         var tbody = document.getElementById("orderTableBody");
         if (tbody && orders.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">⚠️️ 連線 Google Sheet 逾時，請檢查 Google Apps Script 的權限是否設為「所有人 (Anyone)」。</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">⚠ 連線 Google Sheet 逾時，請檢查 Google Apps Script 的權限是否設為「所有人 (Anyone)」。</td></tr>';
         }
       }, 12000);
 
