@@ -15,6 +15,15 @@
     .bg-tpi-primary { background-color: var(--primary); }
     .text-tpi-primary { color: var(--primary); }
     .border-tpi-primary { border-color: var(--primary); }
+
+    /* P醬 懸浮呼吸動畫 */
+    @keyframes p-float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .p-醬-float {
+      animation: p-float 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 relative pb-12">
@@ -212,27 +221,32 @@
     </svg>
   </button>
 
-  <!-- 🐶 P醬 AI 智慧助理 (採用 1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x 圖片) -->
-  <div id="aiAgentContainer" class="fixed bottom-6 right-20 z-50">
-    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-[#662E8D] to-indigo-600 text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2.5 hover:scale-105 transition-all duration-300 font-bold border-2 border-white/40 cursor-pointer">
-      <div class="w-8 h-8 rounded-full overflow-hidden border border-white/80 shadow-sm bg-white flex items-center justify-center shrink-0">
-        <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-full h-full object-cover">
-      </div>
-      <span class="text-sm">P醬</span>
+  <!-- 🐶 P醬 AI 智慧助理 (完全去邊框獨佔風格) -->
+  <div id="aiAgentContainer" class="fixed bottom-6 right-20 z-50 flex flex-col items-center">
+    
+    <!-- P醬 互動按鈕 -->
+    <button onclick="toggleAiPanel()" class="group relative flex flex-col items-center p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
+      <!-- 頂部提示氣泡 -->
+      <span class="bg-[#662E8D] text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md border border-purple-300/40 mb-1 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
+        <span>✨</span> P醬 AI 助理
+      </span>
+      <!-- P醬 角色圖檔（完全無邊框透明） -->
+      <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
+           alt="P醬" 
+           class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl transition-all duration-300">
     </button>
 
-    <div id="aiPanel" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[480px]">
+    <!-- 對話彈窗視窗 -->
+    <div id="aiPanel" class="hidden absolute bottom-24 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[480px]">
       <div class="bg-[#662E8D] text-white p-3.5 flex justify-between items-center">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full overflow-hidden border border-white/80 shadow-sm bg-white flex items-center justify-center shrink-0">
-            <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-full h-full object-cover">
-          </div>
+          <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-10 h-10 object-contain drop-shadow">
           <div>
             <h3 class="font-bold text-sm">P醬 (AISO 訂單 AI Agent)</h3>
             <p class="text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
           </div>
         </div>
-        <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-lg px-2">✕</button>
+        <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-lg px-2 cursor-pointer">✕</button>
       </div>
 
       <div id="aiChatBox" class="flex-1 p-3 overflow-y-auto space-y-3 bg-slate-50 text-xs">
@@ -248,7 +262,7 @@
 
       <div class="p-2.5 bg-white border-t flex gap-2">
         <input type="text" id="aiInput" onkeydown="if(event.key==='Enter') sendAiMessage()" placeholder="詢問 P醬 (按 Enter 發送)..." class="flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#662E8D]">
-        <button onclick="sendAiMessage()" id="btnAiSend" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">發送</button>
+        <button onclick="sendAiMessage()" id="btnAiSend" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">發送</button>
       </div>
     </div>
   </div>
@@ -589,7 +603,7 @@
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
-    // 🤖 安全由 Google Apps Script 後端驅動的 AI Agent 對話機制
+    // 🐶 安全由 Google Apps Script 後端驅動的 P醬 AI Agent 對話機制
     async function sendAiMessage() {
       var inputEl = document.getElementById('aiInput');
       var userMsg = inputEl.value.trim();
