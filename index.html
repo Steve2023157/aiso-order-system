@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統 (AI Agent 升級版)</title>
+  <title>AISO 聯盟一體機 - 訂單管理系統 (AI Agent RWD版)</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 引入 Chart.js 圖表庫 -->
@@ -28,41 +28,41 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 relative pb-12">
 
-  <!-- 白底紫字標頭 (Sticky 置頂) -->
+  <!-- 白底紫字標頭 (Sticky 置頂, RWD 彈性排版) -->
   <header class="bg-white text-[#662E8D] border-b border-slate-200 shadow-sm sticky top-0 z-40">
-    <div class="max-w-[98%] mx-auto flex flex-wrap justify-between items-center p-3 gap-4">
-      <div class="flex items-center gap-6">
+    <div class="max-w-[98%] mx-auto flex flex-col md:flex-row justify-between items-center p-3 gap-3">
+      <div class="flex flex-wrap items-center justify-between w-full md:w-auto gap-3">
         <!-- TPI SOFTWARE LOGO -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 50'><text y='36' font-family='Arial, sans-serif' font-size='30' font-weight='black' fill='%23662E8D'>TPI</text><text x='62' y='36' font-family='Arial, sans-serif' font-size='20' font-weight='bold' fill='%23444444'>SOFTWARE</text></svg>" 
                alt="TPI SOFTWARE Logo" 
-               class="h-10 w-auto object-contain">
-          <div class="h-6 w-[1px] bg-slate-200 hidden sm:block"></div>
-          <h1 class="text-xl font-bold tracking-wide text-[#662E8D]">AISO 聯盟一體機訂單管理系統</h1>
+               class="h-8 sm:h-10 w-auto object-contain">
+          <div class="h-5 w-[1px] bg-slate-200 hidden sm:block"></div>
+          <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理</h1>
         </div>
         
         <!-- 主頁面頁籤切換 -->
-        <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
-          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-4 py-1.5 rounded-md text-sm font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
+        <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm">
+          <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             📋 訂單列表
           </button>
-          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer">
-            📊 數據統計圖表
+          <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer">
+            📊 數據圖表
           </button>
         </nav>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center justify-end w-full md:w-auto gap-2 sm:gap-3 text-xs sm:text-sm">
         <!-- 📌 待辦追蹤事項按鈕 -->
-        <button onclick="openTodoListModal()" class="bg-purple-100 hover:bg-purple-200 text-[#662E8D] border border-purple-300 px-3.5 py-2 rounded-lg font-bold text-sm shadow-sm transition cursor-pointer flex items-center gap-1.5">
-          <span>📌</span> 待辦追蹤 <span id="todoBadgeCount" class="bg-[#662E8D] text-white text-xs px-2 py-0.5 rounded-full font-black">0</span>
+        <button onclick="openTodoListModal()" class="bg-purple-100 hover:bg-purple-200 text-[#662E8D] border border-purple-300 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg font-bold shadow-sm transition cursor-pointer flex items-center gap-1">
+          <span>📌</span> 待辦 <span id="todoBadgeCount" class="bg-[#662E8D] text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-black">0</span>
         </button>
         <!-- 🚚 出貨預警追蹤按鈕 -->
-        <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-lg font-medium text-sm shadow-sm transition cursor-pointer flex items-center gap-1.5">
-          <span>🚚</span> 出貨預警 (逾期/5天/10天)
+        <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg font-medium shadow-sm transition cursor-pointer flex items-center gap-1">
+          <span>🚚</span> 出貨預警
         </button>
-        <button onclick="openOrderModal(null)" class="bg-[#662E8D] hover:bg-[#522373] text-white px-4 py-2 rounded-lg font-medium text-sm shadow-sm transition cursor-pointer">
-          + 新增訂單 (業務專用)
+        <button onclick="openOrderModal(null)" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium shadow-sm transition cursor-pointer">
+          + 新增訂單
         </button>
       </div>
     </div>
@@ -73,16 +73,16 @@
     </div>
   </header>
 
-  <main class="max-w-[98%] mx-auto py-6">
+  <main class="max-w-[98%] mx-auto py-4 sm:py-6">
 
     <!-- ==================== 頁籤 1: 訂單列表 ==================== -->
     <section id="sectionOrders">
       <!-- 篩選與搜尋列 -->
-      <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center justify-between border border-slate-100">
-        <div class="flex flex-wrap gap-4 items-center">
-          <div>
-            <label class="font-semibold text-slate-600 text-sm">訂單狀態：</label>
-            <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+      <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm mb-4 sm:mb-6 flex flex-col md:flex-row gap-3 sm:gap-4 items-stretch md:items-center justify-between border border-slate-100">
+        <div class="flex flex-wrap gap-2 sm:gap-4 items-center">
+          <div class="flex items-center gap-1 text-xs sm:text-sm">
+            <label class="font-semibold text-slate-600">訂單：</label>
+            <select id="filterStatus" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1 sm:p-1.5 outline-none bg-white">
               <option value="ALL">全部狀態</option>
               <option value="待處理">待處理</option>
               <option value="已領貨">已領貨</option>
@@ -95,9 +95,9 @@
               <option value="退貨處理">退貨處理</option>
             </select>
           </div>
-          <div>
-            <label class="font-semibold text-slate-600 text-sm">發票狀態：</label>
-            <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1.5 text-sm outline-none">
+          <div class="flex items-center gap-1 text-xs sm:text-sm">
+            <label class="font-semibold text-slate-600">發票：</label>
+            <select id="filterInvoice" onchange="renderOrders()" class="border border-slate-300 rounded-lg p-1 sm:p-1.5 outline-none bg-white">
               <option value="ALL">全部</option>
               <option value="未開發票">未開發票</option>
               <option value="已開發票">已開發票</option>
@@ -105,33 +105,33 @@
           </div>
         </div>
 
-        <div class="flex gap-2">
-          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1 cursor-pointer">
-            <span id="refreshIcon">🔄</span> 重新整理資料
+        <div class="flex gap-2 text-xs sm:text-sm">
+          <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-2.5 sm:px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 cursor-pointer shrink-0">
+            <span id="refreshIcon">🔄</span> 重新整理
           </button>
-          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-2 text-sm w-64 outline-none">
+          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm w-full md:w-64 outline-none">
         </div>
       </div>
 
-      <!-- 訂單列表表格 -->
+      <!-- 訂單列表表格 (自適應水平滑動) -->
       <div class="bg-white rounded-xl shadow-sm overflow-x-auto border border-slate-100">
-        <table class="w-full text-left border-collapse min-w-[1600px]">
-          <thead class="bg-slate-100 border-b border-slate-200">
+        <table class="w-full text-left border-collapse min-w-[1200px] sm:min-w-[1600px]">
+          <thead class="bg-slate-100 border-b border-slate-200 text-xs sm:text-sm">
             <tr>
-              <th class="p-3 font-semibold text-slate-600 text-sm">單號/客戶/ERP</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">預計出貨日</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">硬體資訊與保固</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">軟體資訊與保固</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">金額與付款餘額</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">物流資訊</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">付款狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">發票狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">訂單狀態</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">備註記錄 (含追蹤)</th>
-              <th class="p-3 font-semibold text-slate-600 text-sm">操作</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">單號/客戶/ERP</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">預計出貨日</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">硬體資訊與保固</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">軟體資訊與保固</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">金額與付款餘額</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">物流資訊</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">付款狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">發票狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">訂單狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">備註記錄 (含追蹤)</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">操作</th>
             </tr>
           </thead>
-          <tbody id="orderTableBody">
+          <tbody id="orderTableBody" class="text-xs sm:text-sm">
             <tr><td colspan="11" class="p-8 text-center text-slate-400">正在從雲端載入資料中...</td></tr>
           </tbody>
         </table>
@@ -139,114 +139,113 @@
     </section>
 
     <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
-    <section id="sectionAnalytics" class="hidden space-y-6">
-      <div class="bg-white p-4 rounded-xl shadow-sm space-y-4 border border-slate-100">
-        <div class="flex justify-between items-center">
+    <section id="sectionAnalytics" class="hidden space-y-4 sm:space-y-6">
+      <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm space-y-3 sm:space-y-4 border border-slate-100">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
-            <h2 class="text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
-            <p class="text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據，支援各圖表單獨導出 PNG 圖檔。</p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-800">經營分析與營運統計 Dashboards</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">自動即時彙整 Google Sheet 最新訂單數據。</p>
           </div>
-          <button onclick="safeRenderCharts()" class="bg-purple-50 hover:bg-purple-100 text-[#662E8D] border border-purple-200 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer">
+          <button onclick="safeRenderCharts()" class="bg-purple-50 hover:bg-purple-100 text-[#662E8D] border border-purple-200 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition cursor-pointer">
             🔄 重新計算數據圖表
           </button>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-sm">
-          <span class="font-bold text-slate-700 flex items-center gap-1">📅 統計時間範圍：</span>
-          <div class="flex bg-slate-100 p-1 rounded-lg gap-1">
-            <button onclick="setChartTimeFilter('1m')" id="btnTime1m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近一個月</button>
-            <button onclick="setChartTimeFilter('3m')" id="btnTime3m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近三個月</button>
-            <button onclick="setChartTimeFilter('6m')" id="btnTime6m" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近半年</button>
-            <button onclick="setChartTimeFilter('1y')" id="btnTime1y" class="px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">最近一年</button>
-            <button onclick="setChartTimeFilter('all')" id="btnTimeAll" class="px-3 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer">全部時間</button>
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs sm:text-sm">
+          <span class="font-bold text-slate-700 flex items-center gap-1">📅 時間範圍：</span>
+          <div class="flex bg-slate-100 p-1 rounded-lg gap-1 flex-wrap">
+            <button onclick="setChartTimeFilter('1m')" id="btnTime1m" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">1個月</button>
+            <button onclick="setChartTimeFilter('3m')" id="btnTime3m" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">3個月</button>
+            <button onclick="setChartTimeFilter('6m')" id="btnTime6m" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">半年</button>
+            <button onclick="setChartTimeFilter('1y')" id="btnTime1y" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer">1年</button>
+            <button onclick="setChartTimeFilter('all')" id="btnTimeAll" class="px-2.5 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer">全部</button>
           </div>
 
-          <div class="flex items-center gap-1.5 ml-auto text-xs text-slate-500">
-            <span>自訂起訖：</span>
-            <input type="date" id="chartStartDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-2 py-1 bg-white outline-none">
+          <div class="flex items-center gap-1 text-xs text-slate-500 ml-auto flex-wrap">
+            <input type="date" id="chartStartDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-1.5 py-0.5 bg-white outline-none">
             <span>至</span>
-            <input type="date" id="chartEndDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-2 py-1 bg-white outline-none">
+            <input type="date" id="chartEndDate" onchange="onCustomChartDateChange()" class="border border-slate-300 rounded px-1.5 py-0.5 bg-white outline-none">
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <div><h3 class="font-bold text-slate-800 text-base">🍕 出貨核心狀態分布 (Pie Chart)</h3></div>
-            <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">🍕 出貨核心狀態分布</h3>
+            <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-64 flex justify-center items-center"><canvas id="chartStatusPie"></canvas></div>
+          <div class="h-56 sm:h-64 flex justify-center items-center"><canvas id="chartStatusPie"></canvas></div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base">💳 財務收款與發票狀態 (Doughnut Chart)</h3>
-            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">💳 財務收款與發票狀態</h3>
+            <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-64 flex justify-center items-center"><canvas id="chartFinanceDoughnut"></canvas></div>
+          <div class="h-56 sm:h-64 flex justify-center items-center"><canvas id="chartFinanceDoughnut"></canvas></div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base">📈 月度銷售業績趨勢 (Bar Chart)</h3>
-            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">📈 月度銷售業績趨勢</h3>
+            <button onclick="downloadChartCanvas('chartMonthlyBar', '月度銷售業績趨勢')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-72"><canvas id="chartMonthlyBar"></canvas></div>
+          <div class="h-60 sm:h-72"><canvas id="chartMonthlyBar"></canvas></div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base">🏆 業務銷售業績排行榜 (Horizontal Bar Chart)</h3>
-            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">🏆 業務銷售業績排行榜</h3>
+            <button onclick="downloadChartCanvas('chartSalesRankBar', '業務銷售業績排行榜')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-72"><canvas id="chartSalesRankBar"></canvas></div>
+          <div class="h-60 sm:h-72"><canvas id="chartSalesRankBar"></canvas></div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-800 text-base">💻 硬體機種銷售台數與保固統計</h3>
-            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-xs bg-slate-100 px-2 py-1 rounded">📥 下載 PNG</button>
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-slate-800 text-sm sm:text-base">💻 硬體機種銷售與保固統計</h3>
+            <button onclick="downloadChartCanvas('chartHardwareBar', '硬體機種銷售與保固統計')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-72"><canvas id="chartHardwareBar"></canvas></div>
+          <div class="h-60 sm:h-72"><canvas id="chartHardwareBar"></canvas></div>
         </div>
       </div>
     </section>
   </main>
 
   <!-- 右下角 Go-to-Top 頂部按鈕 -->
-  <button id="btnGoToTop" onclick="scrollToTop()" class="fixed bottom-6 right-6 bg-[#662E8D] hover:bg-[#522373] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 hover:-translate-y-1 flex items-center justify-center cursor-pointer">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <button id="btnGoToTop" onclick="scrollToTop()" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 bg-[#662E8D] hover:bg-[#522373] text-white p-2.5 sm:p-3.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center justify-center cursor-pointer">
+    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
     </svg>
   </button>
 
-  <!-- 🐶 P醬 AI 智慧助理 (完全去邊框獨佔風格) -->
-  <div id="aiAgentContainer" class="fixed bottom-6 right-20 z-50 flex flex-col items-center">
+  <!-- 🐶 P醬 AI 智慧助理 (RWD 全螢幕與自適應) -->
+  <div id="aiAgentContainer" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-20 z-50 flex flex-col items-end">
     
     <!-- P醬 互動按鈕 -->
     <button onclick="toggleAiPanel()" class="group relative flex flex-col items-center p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
       <!-- 頂部提示氣泡 -->
-      <span class="bg-[#662E8D] text-white text-[11px] font-extrabold px-2.5 py-1 rounded-full shadow-md border border-purple-300/40 mb-1 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
-        <span>✨</span> P醬 AI 助理
+      <span class="bg-[#662E8D] text-white text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-md border border-purple-300/40 mb-1 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
+        <span>✨</span> P醬
       </span>
-      <!-- P醬 角色圖檔（完全無邊框透明） -->
+      <!-- P醬 角色圖檔 -->
       <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
            alt="P醬" 
-           class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl transition-all duration-300">
+           class="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl transition-all duration-300">
     </button>
 
-    <!-- 對話彈窗視窗 -->
-    <div id="aiPanel" class="hidden absolute bottom-24 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[480px]">
-      <div class="bg-[#662E8D] text-white p-3.5 flex justify-between items-center">
-        <div class="flex items-center gap-2.5">
-          <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-10 h-10 object-contain drop-shadow">
+    <!-- 對話彈窗視窗 (在手機端智慧縮放) -->
+    <div id="aiPanel" class="hidden fixed sm:absolute inset-x-2 bottom-20 sm:inset-auto sm:bottom-24 sm:right-0 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[70vh] sm:h-[480px]">
+      <div class="bg-[#662E8D] text-white p-3 sm:p-3.5 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+          <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow">
           <div>
-            <h3 class="font-bold text-sm">P醬 (AISO 訂單 AI Agent)</h3>
-            <p class="text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
+            <h3 class="font-bold text-xs sm:text-sm">P醬 (AISO 訂單 AI Agent)</h3>
+            <p class="text-[9px] sm:text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
           </div>
         </div>
-        <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-lg px-2 cursor-pointer">✕</button>
+        <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-base sm:text-lg px-2 cursor-pointer">✕</button>
       </div>
 
       <div id="aiChatBox" class="flex-1 p-3 overflow-y-auto space-y-3 bg-slate-50 text-xs">
@@ -268,27 +267,27 @@
   </div>
 
   <!-- 📌 全域待辦追蹤清單 Modal -->
-  <div id="todoListModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-4xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4 border-b pb-3">
+  <div id="todoListModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div class="bg-white rounded-xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-3 sm:mb-4 border-b pb-2 sm:pb-3">
         <div>
-          <h2 class="text-xl font-bold text-[#662E8D] flex items-center gap-2">
+          <h2 class="text-base sm:text-xl font-bold text-[#662E8D] flex items-center gap-1 sm:gap-2">
             <span>📌</span> 售後與服務待辦追蹤事項清單
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">即時列出所有勾選需要追蹤之備註，可直接在此勾選完成</p>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">即時列出所有勾選需要追蹤之備註，可直接在此勾選完成</p>
         </div>
-        <button onclick="toggleModal('todoListModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 cursor-pointer">✕</button>
+        <button onclick="toggleModal('todoListModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-lg sm:text-xl px-2 cursor-pointer">✕</button>
       </div>
 
       <div class="border rounded-lg overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
+        <table class="w-full text-left text-xs border-collapse min-w-[500px]">
           <thead class="bg-purple-50 text-[#662E8D] border-b">
             <tr>
-              <th class="p-2.5 text-center w-12">狀態</th>
-              <th class="p-2.5 w-32">訂單單號 / 客戶</th>
-              <th class="p-2.5">待辦追蹤內容</th>
-              <th class="p-2.5 w-24">負責業務</th>
-              <th class="p-2.5 text-center w-28">操作</th>
+              <th class="p-2 text-center w-10 sm:w-12">狀態</th>
+              <th class="p-2 w-28 sm:w-32">單號 / 客戶</th>
+              <th class="p-2">待辦追蹤內容</th>
+              <th class="p-2 w-20 sm:w-24">業務</th>
+              <th class="p-2 text-center w-20 sm:w-28">操作</th>
             </tr>
           </thead>
           <tbody id="todoTableBody">
@@ -297,63 +296,63 @@
         </table>
       </div>
 
-      <div class="flex justify-end mt-6">
-        <button onclick="toggleModal('todoListModal', false)" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium transition cursor-pointer">關閉選單</button>
+      <div class="flex justify-end mt-4 sm:mt-6">
+        <button onclick="toggleModal('todoListModal', false)" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs sm:text-sm font-medium transition cursor-pointer">關閉選單</button>
       </div>
     </div>
   </div>
 
   <!-- 🚚 出貨預警 Modal -->
-  <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-5xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4 border-b pb-3">
+  <div id="shipmentTrackerModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div class="bg-white rounded-xl max-w-5xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-3 sm:mb-4 border-b pb-2 sm:pb-3">
         <div>
-          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <h2 class="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-1 sm:gap-2">
             <span>🚚</span> 出貨時程預警與備貨追蹤
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">自動排除「出貨完成」案件；包含「已安裝 (可隨時出貨)」與「待處理」案件之預警</p>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">自動排除「出貨完成」案件；包含「已安裝」與「待處理」案件</p>
         </div>
-        <button onclick="toggleModal('shipmentTrackerModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 cursor-pointer">✕</button>
+        <button onclick="toggleModal('shipmentTrackerModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-lg sm:text-xl px-2 cursor-pointer">✕</button>
       </div>
 
-      <div class="grid grid-cols-3 gap-3 mb-6">
-        <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl flex justify-between items-center">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+        <div class="bg-rose-50 border border-rose-200 p-2.5 sm:p-3.5 rounded-xl flex justify-between items-center">
           <div>
-            <div class="text-xs font-semibold text-rose-800 mb-1">🚨 逾期 / 配送中需關注</div>
-            <div id="trackerKpiOverdue" class="text-xl font-black text-rose-600">0 筆廠商 / 0 台</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-rose-800 mb-0.5">🚨 逾期 / 配送中需關注</div>
+            <div id="trackerKpiOverdue" class="text-base sm:text-xl font-black text-rose-600">0 筆廠商 / 0 台</div>
           </div>
-          <span class="text-2xl">⚠️</span>
+          <span class="text-xl sm:text-2xl">⚠️</span>
         </div>
-        <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl flex justify-between items-center">
+        <div class="bg-amber-50 border border-amber-200 p-2.5 sm:p-3.5 rounded-xl flex justify-between items-center">
           <div>
-            <div class="text-xs font-semibold text-amber-800 mb-1">⏰ 未來 5 天內預計出貨 (含今日)</div>
-            <div id="trackerKpi5" class="text-xl font-black text-amber-600">0 筆廠商 / 0 台</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-amber-800 mb-0.5">⏰ 未來 5 天內預計出貨</div>
+            <div id="trackerKpi5" class="text-base sm:text-xl font-black text-amber-600">0 筆廠商 / 0 台</div>
           </div>
-          <span class="text-2xl">⏳</span>
+          <span class="text-xl sm:text-2xl">⏳</span>
         </div>
-        <div class="bg-purple-50 border border-purple-200 p-3.5 rounded-xl flex justify-between items-center">
+        <div class="bg-purple-50 border border-purple-200 p-2.5 sm:p-3.5 rounded-xl flex justify-between items-center">
           <div>
-            <div class="text-xs font-semibold text-[#662E8D] mb-1">📦 未來 6~10 天內預計出貨</div>
-            <div id="trackerKpi10" class="text-xl font-black text-[#662E8D]">0 筆廠商 / 0 台</div>
+            <div class="text-[11px] sm:text-xs font-semibold text-[#662E8D] mb-0.5">📦 未來 6~10 天預計出貨</div>
+            <div id="trackerKpi10" class="text-base sm:text-xl font-black text-[#662E8D]">0 筆廠商 / 0 台</div>
           </div>
-          <span class="text-2xl">📅</span>
+          <span class="text-xl sm:text-2xl">📅</span>
         </div>
       </div>
 
-      <div class="space-y-6">
+      <div class="space-y-4 sm:space-y-6">
         <div>
-          <h3 class="text-sm font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+          <h3 class="text-xs sm:text-sm font-bold text-rose-700 bg-rose-100 px-2.5 sm:px-3 py-1 rounded-lg inline-block mb-2 flex items-center gap-1 w-fit">
             <span>🚨</span> 已過預計出貨日 / 配送中未完結案件
           </h3>
           <div class="border border-rose-200 rounded-lg overflow-x-auto bg-rose-50/10">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="w-full text-left text-xs border-collapse min-w-[500px]">
               <thead class="bg-rose-100/60 text-rose-900 border-b border-rose-200">
                 <tr>
-                  <th class="p-2.5">預計出貨日</th>
-                  <th class="p-2.5">訂單/ERP單號</th>
-                  <th class="p-2.5">客戶名稱</th>
-                  <th class="p-2.5">硬體需求與機型(台數)</th>
-                  <th class="p-2.5">業務/目前狀態</th>
+                  <th class="p-2">預計出貨日</th>
+                  <th class="p-2">訂單/ERP單號</th>
+                  <th class="p-2">客戶名稱</th>
+                  <th class="p-2">硬體需求與機型(台數)</th>
+                  <th class="p-2">業務/目前狀態</th>
                 </tr>
               </thead>
               <tbody id="trackerTableOverdueBody">
@@ -364,18 +363,18 @@
         </div>
 
         <div>
-          <h3 class="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+          <h3 class="text-xs sm:text-sm font-bold text-amber-700 bg-amber-100 px-2.5 sm:px-3 py-1 rounded-lg inline-block mb-2 flex items-center gap-1 w-fit">
             <span>📍</span> 未來 5 天內預計出貨案件明細 (含今日/可出貨)
           </h3>
           <div class="border rounded-lg overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="w-full text-left text-xs border-collapse min-w-[500px]">
               <thead class="bg-slate-100 text-slate-600 border-b">
                 <tr>
-                  <th class="p-2.5">預計出貨日</th>
-                  <th class="p-2.5">訂單/ERP單號</th>
-                  <th class="p-2.5">客戶名稱</th>
-                  <th class="p-2.5">硬體需求與機型(台數)</th>
-                  <th class="p-2.5">業務/狀態</th>
+                  <th class="p-2">預計出貨日</th>
+                  <th class="p-2">訂單/ERP單號</th>
+                  <th class="p-2">客戶名稱</th>
+                  <th class="p-2">硬體需求與機型(台數)</th>
+                  <th class="p-2">業務/狀態</th>
                 </tr>
               </thead>
               <tbody id="trackerTable5Body">
@@ -386,18 +385,18 @@
         </div>
 
         <div>
-          <h3 class="text-sm font-bold text-[#662E8D] bg-purple-100 px-3 py-1.5 rounded-lg inline-block mb-3 flex items-center gap-1 w-fit">
+          <h3 class="text-xs sm:text-sm font-bold text-[#662E8D] bg-purple-100 px-2.5 sm:px-3 py-1 rounded-lg inline-block mb-2 flex items-center gap-1 w-fit">
             <span>📍</span> 未來 6~10 天內預計出貨明細
           </h3>
           <div class="border rounded-lg overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="w-full text-left text-xs border-collapse min-w-[500px]">
               <thead class="bg-slate-100 text-slate-600 border-b">
                 <tr>
-                  <th class="p-2.5">預計出貨日</th>
-                  <th class="p-2.5">訂單/ERP單號</th>
-                  <th class="p-2.5">客戶名稱</th>
-                  <th class="p-2.5">硬體需求與機型(台數)</th>
-                  <th class="p-2.5">業務/狀態</th>
+                  <th class="p-2">預計出貨日</th>
+                  <th class="p-2">訂單/ERP單號</th>
+                  <th class="p-2">客戶名稱</th>
+                  <th class="p-2">硬體需求與機型(台數)</th>
+                  <th class="p-2">業務/狀態</th>
                 </tr>
               </thead>
               <tbody id="trackerTable10Body">
@@ -408,57 +407,57 @@
         </div>
       </div>
 
-      <div class="flex justify-end mt-6">
-        <button onclick="toggleModal('shipmentTrackerModal', false)" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-sm font-medium transition cursor-pointer">關閉選單</button>
+      <div class="flex justify-end mt-4 sm:mt-6">
+        <button onclick="toggleModal('shipmentTrackerModal', false)" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs sm:text-sm font-medium transition cursor-pointer">關閉選單</button>
       </div>
     </div>
   </div>
 
   <!-- 建立 / 編輯訂單 Modal -->
-  <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <h2 id="modalTitle" class="text-xl font-bold mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
-      <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-4">
+  <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div class="bg-white rounded-xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 id="modalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
+      <form id="orderForm" onsubmit="submitOrder(event)" class="space-y-3 sm:space-y-4 text-xs sm:text-sm">
         <input type="hidden" id="editOrderId">
 
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block text-sm font-medium mb-1 text-[#662E8D]">預計出貨日期</label>
-            <input type="date" id="shipDate" onchange="autoGenerateDNCode()" required class="w-full border rounded-lg p-2 text-sm bg-purple-50/20">
+            <label class="block font-medium mb-1 text-[#662E8D]">預計出貨日期</label>
+            <input type="date" id="shipDate" onchange="autoGenerateDNCode()" required class="w-full border rounded-lg p-2 bg-purple-50/20">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1 text-[#662E8D]">訂單編號 (DN碼，可手動修改)</label>
-            <input type="text" id="customOrderId" placeholder="例：DN20260924001" class="w-full border border-purple-300 rounded-lg p-2 text-sm font-mono bg-purple-50/20 font-bold text-[#662E8D]">
+            <label class="block font-medium mb-1 text-[#662E8D]">訂單編號 (DN碼)</label>
+            <input type="text" id="customOrderId" placeholder="例：DN20260924001" class="w-full border border-purple-300 rounded-lg p-2 font-mono bg-purple-50/20 font-bold text-[#662E8D]">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">客戶名稱</label>
-            <input type="text" id="custName" required class="w-full border rounded-lg p-2 text-sm">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">負責業務</label>
-            <input type="text" id="salesName" required class="w-full border rounded-lg p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">ERP 單號 (選填)</label>
-            <input type="text" id="erpId" placeholder="例如：ERP-20240901" class="w-full border rounded-lg p-2 text-sm">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">檔案連結 (附件/目錄)</label>
-            <input type="url" id="fileUrl" placeholder="https://..." class="w-full border rounded-lg p-2 text-sm">
+            <label class="block font-medium mb-1">客戶名稱</label>
+            <input type="text" id="custName" required class="w-full border rounded-lg p-2">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block text-sm font-medium mb-1">硬體資訊 (機型/序號)</label>
-            <textarea id="hwInfo" rows="2" placeholder="例：AISO-Pro * 2 / SN:883920" required class="w-full border rounded-lg p-2 text-sm"></textarea>
+            <label class="block font-medium mb-1">負責業務</label>
+            <input type="text" id="salesName" required class="w-full border rounded-lg p-2">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">軟體資訊 (版本/授權)</label>
-            <textarea id="swInfo" rows="2" placeholder="例：AISO OS v3.1" required class="w-full border rounded-lg p-2 text-sm"></textarea>
+            <label class="block font-medium mb-1">ERP 單號 (選填)</label>
+            <input type="text" id="erpId" placeholder="例如：ERP-20240901" class="w-full border rounded-lg p-2">
+          </div>
+          <div>
+            <label class="block font-medium mb-1">檔案連結 (附件/目錄)</label>
+            <input type="url" id="fileUrl" placeholder="https://..." class="w-full border rounded-lg p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1">硬體資訊 (機型/序號)</label>
+            <textarea id="hwInfo" rows="2" placeholder="例：AISO-Pro * 2 / SN:883920" required class="w-full border rounded-lg p-2"></textarea>
+          </div>
+          <div>
+            <label class="block font-medium mb-1">軟體資訊 (版本/授權)</label>
+            <textarea id="swInfo" rows="2" placeholder="例：AISO OS v3.1" required class="w-full border rounded-lg p-2"></textarea>
           </div>
         </div>
 
@@ -466,7 +465,7 @@
         <div class="bg-amber-50/60 p-3 rounded-lg border border-amber-200 space-y-3">
           <div class="text-xs font-bold text-amber-800 flex items-center gap-1">🛡 保固資訊設定 (選填)</div>
           
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">硬體保固起訖時間</label>
               <div class="flex items-center gap-1">
@@ -485,36 +484,36 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-slate-700 mb-1">保固對接窗口 (姓名/電話/Email)</label>
-              <input type="text" id="warrantyContact" placeholder="例：張工程師 0912-345678 / tech@test.com" class="w-full border rounded p-1.5 text-xs bg-white">
+              <label class="block text-xs font-medium text-slate-700 mb-1">保固對接窗口</label>
+              <input type="text" id="warrantyContact" placeholder="例：張工程師 0912-345678" class="w-full border rounded p-1.5 text-xs bg-white">
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">保固注意事項</label>
-              <input type="text" id="warrantyNote" placeholder="例：人為損壞不在保固範圍，軟體提供首年免費更新" class="w-full border rounded p-1.5 text-xs bg-white">
+              <input type="text" id="warrantyNote" placeholder="例：首年免費更新" class="w-full border rounded p-1.5 text-xs bg-white">
             </div>
           </div>
         </div>
 
         <!-- 金額與付款條件欄位 -->
         <div class="bg-slate-50 p-3 rounded-lg border space-y-3">
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label class="block text-sm font-medium mb-1">總金額 (NT$)</label>
-              <input type="number" id="totalAmount" oninput="calculateBalance()" placeholder="300000" required class="w-full border rounded-lg p-2 text-sm">
+              <label class="block font-medium mb-1">總金額 (NT$)</label>
+              <input type="number" id="totalAmount" oninput="calculateBalance()" placeholder="300000" required class="w-full border rounded-lg p-2">
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">付款狀態</label>
-              <select id="paymentStatus" onchange="handlePaymentStatusChange()" class="w-full border rounded-lg p-2 text-sm">
+              <label class="block font-medium mb-1">付款狀態</label>
+              <select id="paymentStatus" onchange="handlePaymentStatusChange()" class="w-full border rounded-lg p-2 bg-white">
                 <option value="未付款">未付款</option>
                 <option value="已付訂金">已付訂金</option>
                 <option value="已結清">已結清</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">已付訂金金額</label>
-              <input type="number" id="depositAmount" oninput="calculateBalance()" placeholder="0" class="w-full border rounded-lg p-2 text-sm">
+              <label class="block font-medium mb-1">已付訂金金額</label>
+              <input type="number" id="depositAmount" oninput="calculateBalance()" placeholder="0" class="w-full border rounded-lg p-2">
             </div>
           </div>
           <div id="balanceBox" class="text-xs font-semibold text-emerald-600 bg-emerald-50 p-2 rounded hidden">
@@ -523,28 +522,28 @@
         </div>
 
         <!-- 物流欄位 -->
-        <div class="bg-purple-50/40 p-3 rounded-lg border border-purple-100 grid grid-cols-2 gap-4">
+        <div class="bg-purple-50/40 p-3 rounded-lg border border-purple-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-medium mb-1 text-slate-700">物流公司 (選填)</label>
-            <input type="text" id="logisticsCompany" placeholder="例：順豐 / 黑貓宅急便 / 新竹物流" class="w-full border rounded-lg p-2 text-sm bg-white">
+            <label class="block font-medium mb-1 text-slate-700">物流公司 (選填)</label>
+            <input type="text" id="logisticsCompany" placeholder="例：順豐 / 黑貓" class="w-full border rounded-lg p-2 bg-white">
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1 text-slate-700">物流單號 (多筆可換行或用逗號隔開)</label>
-            <textarea id="logisticsNo" rows="2" placeholder="例：&#10;SF5158435674788&#10;SF5152539908627" class="w-full border rounded-lg p-2 text-sm bg-white font-mono"></textarea>
+            <label class="block font-medium mb-1 text-slate-700">物流單號</label>
+            <textarea id="logisticsNo" rows="2" placeholder="多筆可換行" class="w-full border rounded-lg p-2 bg-white font-mono"></textarea>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-medium mb-1">發票狀態</label>
-            <select id="invoiceStatus" class="w-full border rounded-lg p-2 text-sm">
+            <label class="block font-medium mb-1">發票狀態</label>
+            <select id="invoiceStatus" class="w-full border rounded-lg p-2 bg-white">
               <option value="未開發票">未開發票</option>
               <option value="已開發票">已開發票</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">訂單狀態</label>
-            <select id="orderStatus" class="w-full border rounded-lg p-2 text-sm font-semibold">
+            <label class="block font-medium mb-1">訂單狀態</label>
+            <select id="orderStatus" class="w-full border rounded-lg p-2 bg-white font-semibold">
               <option value="待處理">待處理</option>
               <option value="已領貨">已領貨</option>
               <option value="出貨中">出貨中</option>
@@ -559,37 +558,37 @@
         </div>
 
         <div id="initialNoteBox">
-          <label class="block text-sm font-medium mb-1">初始備註</label>
-          <input type="text" id="initialNote" placeholder="注意事項..." class="w-full border rounded-lg p-2 text-sm">
+          <label class="block font-medium mb-1">初始備註</label>
+          <input type="text" id="initialNote" placeholder="注意事項..." class="w-full border rounded-lg p-2">
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg text-sm hover:bg-slate-100 cursor-pointer">取消</button>
-          <button type="submit" id="submitBtn" class="px-4 py-2 bg-[#662E8D] text-white rounded-lg text-sm hover:bg-[#522373] cursor-pointer">儲存訂單</button>
+        <div class="flex justify-end gap-3 mt-4 sm:mt-6">
+          <button type="button" onclick="toggleModal('orderModal', false)" class="px-4 py-2 border rounded-lg hover:bg-slate-100 cursor-pointer">取消</button>
+          <button type="submit" id="submitBtn" class="px-4 py-2 bg-[#662E8D] text-white rounded-lg hover:bg-[#522373] cursor-pointer font-bold">儲存訂單</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- 📌 新增售後/備註 Modal -->
-  <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
-      <h3 class="text-lg font-bold mb-1 text-slate-800">新增售後/庫存備註</h3>
-      <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-4 font-bold"></p>
+  <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl">
+      <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增售後/庫存備註</h3>
+      <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-3 sm:mb-4 font-bold"></p>
       <input type="hidden" id="currentOrderId">
       
-      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2.5 text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
+      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
       
       <div class="flex items-center gap-2 bg-purple-50 p-2.5 rounded-lg border border-purple-200 mb-4 cursor-pointer" onclick="document.getElementById('chkNeedTrack').click()">
         <input type="checkbox" id="chkNeedTrack" onclick="event.stopPropagation()" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 focus:ring-[#662E8D] cursor-pointer">
         <label for="chkNeedTrack" class="text-xs font-bold text-[#662E8D] cursor-pointer select-none">
-          📌 標記為需要追蹤事項 (例: 待辦、預約維修、料件更換)
+          📌 標記為需要追蹤事項 (例: 待辦、預約維修)
         </label>
       </div>
 
       <div class="flex justify-end gap-2">
-        <button onclick="toggleModal('noteModal', false)" class="px-3.5 py-1.5 border rounded-lg text-sm cursor-pointer hover:bg-slate-50">取消</button>
-        <button onclick="saveNote()" class="px-3.5 py-1.5 bg-[#662E8D] hover:bg-[#522373] text-white rounded-lg text-sm cursor-pointer shadow-sm">新增紀錄</button>
+        <button onclick="toggleModal('noteModal', false)" class="px-3.5 py-1.5 border rounded-lg text-xs sm:text-sm cursor-pointer hover:bg-slate-50">取消</button>
+        <button onclick="saveNote()" class="px-3.5 py-1.5 bg-[#662E8D] hover:bg-[#522373] text-white rounded-lg text-xs sm:text-sm font-bold cursor-pointer shadow-sm">新增紀錄</button>
       </div>
     </div>
   </div>
@@ -1035,13 +1034,13 @@
       var secAnalytics = document.getElementById("sectionAnalytics");
 
       if (tab === 'orders') {
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+        btnOrders.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnAnalytics.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
         secOrders.classList.remove("hidden");
         secAnalytics.classList.add("hidden");
       } else {
-        btnAnalytics.className = "px-4 py-1.5 rounded-md text-sm font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnOrders.className = "px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+        btnAnalytics.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnOrders.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
         secAnalytics.classList.remove("hidden");
         secOrders.classList.add("hidden");
         
@@ -1149,7 +1148,7 @@
         return matchSt && matchInv && matchSearch;
       }).forEach(function(o) {
         var tr = document.createElement("tr");
-        tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-sm";
+        tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-xs sm:text-sm";
         
         var notesHtml = '<div class="text-xs text-slate-400">-</div>';
         if (Array.isArray(o.notes) && o.notes.length > 0) {
@@ -1213,46 +1212,46 @@
         var fileLinkHtml = o.fileUrl ? '<a href="' + o.fileUrl + '" target="_blank" class="text-xs text-blue-500 underline">附件</a>' : '';
 
         tr.innerHTML = 
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3">' +
             '<div class="font-mono font-bold text-[#662E8D]">' + o.orderId + '</div>' +
             '<div class="font-medium text-slate-800">' + (o.customer || '-') + '</div>' +
             '<div class="text-xs text-slate-400">業務: ' + (o.sales || '-') + '</div>' +
             erpBadgeHtml +
           '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3">' +
             '<span class="inline-block bg-slate-100 px-2 py-1 rounded text-xs font-mono font-medium text-slate-700">📅 ' + o.shipDate + '</span>' +
           '</td>' +
-          '<td class="p-3 text-xs">' +
+          '<td class="p-2.5 sm:p-3 text-xs">' +
             '<div class="font-medium text-slate-800 truncate max-w-[160px]" title="' + o.hardware + '">' + (o.hardware || '-') + '</div>' +
             hwWarrantyHtml +
           '</td>' +
-          '<td class="p-3 text-xs">' +
+          '<td class="p-2.5 sm:p-3 text-xs">' +
             '<div class="font-medium text-slate-800 truncate max-w-[160px]" title="' + o.software + '">' + (o.software || '-') + '</div>' +
             swWarrantyHtml +
           '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3">' +
             '<div class="font-semibold text-slate-700">NT$ ' + o.amount.toLocaleString() + '</div>' +
             depositBalanceHtml +
           '</td>' +
-          '<td class="p-3 text-xs">' + logisticsHtml + '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3 text-xs">' + logisticsHtml + '</td>' +
+          '<td class="p-2.5 sm:p-3">' +
             '<select onchange="updateOrderField(\'' + o.orderId + '\', \'paymentStatus\', this.value)" class="text-xs border rounded p-1 bg-white cursor-pointer">' +
               paymentOptionsHtml +
             '</select>' +
           '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3">' +
             '<select onchange="updateOrderField(\'' + o.orderId + '\', \'invoiceStatus\', this.value)" class="text-xs font-semibold border rounded p-1 cursor-pointer ' + invClass + '">' +
               '<option value="未開發票" ' + (o.invoiceStatus === '未開發票' ? 'selected' : '') + '>未開發票</option>' +
               '<option value="已開發票" ' + (o.invoiceStatus === '已開發票' ? 'selected' : '') + '>已開發票</option>' +
             '</select>' +
           '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3">' +
             '<select onchange="updateOrderField(\'' + o.orderId + '\', \'status\', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer ' + statusClass + '">' +
               statusOptionsHtml +
             '</select>' +
           '</td>' +
-          '<td class="p-3 max-w-[200px]">' + notesHtml + '</td>' +
-          '<td class="p-3">' +
+          '<td class="p-2.5 sm:p-3 max-w-[200px]">' + notesHtml + '</td>' +
+          '<td class="p-2.5 sm:p-3">' +
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
               '<button onclick="openNoteModal(\'' + o.orderId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
@@ -1407,9 +1406,9 @@
         var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
         if (btn) {
           if (b === range) {
-            btn.className = "px-3 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer";
+            btn.className = "px-2.5 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer";
           } else {
-            btn.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
+            btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
           }
         }
       });
@@ -1424,7 +1423,7 @@
       var btns = ['1m', '3m', '6m', '1y', 'all'];
       btns.forEach(function(b) {
         var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
-        if (btn) btn.className = "px-3 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
+        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
       });
       currentChartTimeRange = 'custom';
       safeRenderCharts();
