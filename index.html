@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統 (AI Agent RWD版)</title>
+  <title>AISO 聯盟一體機 - 訂單管理系統 (功能全增強版)</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 引入 Chart.js 圖表庫 -->
@@ -24,11 +24,24 @@
     .p-醬-float {
       animation: p-float 3s ease-in-out infinite;
     }
+
+    /* 固定表頭 Sticky 樣式優化 */
+    .sticky-table-container {
+      max-height: calc(100vh - 220px);
+      overflow-y: auto;
+    }
+    .sticky-table-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background-color: #f1f5f9; /* Tailwind slate-100 */
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 relative pb-12">
 
-  <!-- 白底紫字標頭 (Sticky 置頂, RWD 彈性排版) -->
+  <!-- 白底紫字標頭 (Sticky 置頂) -->
   <header class="bg-white text-[#662E8D] border-b border-slate-200 shadow-sm sticky top-0 z-40">
     <div class="max-w-[98%] mx-auto flex flex-col md:flex-row justify-between items-center p-3 gap-3">
       <div class="flex flex-wrap items-center justify-between w-full md:w-auto gap-3">
@@ -38,16 +51,19 @@
                alt="TPI SOFTWARE Logo" 
                class="h-8 sm:h-10 w-auto object-contain">
           <div class="h-5 w-[1px] bg-slate-200 hidden sm:block"></div>
-          <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理</h1>
+          <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理系統</h1>
         </div>
         
-        <!-- 主頁面頁籤切換 -->
-        <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm">
+        <!-- 主頁面頁籤切換 (新增客戶問題彙總) -->
+        <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm flex-wrap gap-1">
           <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             📋 訂單列表
           </button>
           <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer">
             📊 數據圖表
+          </button>
+          <button id="tabBtnIssues" onclick="switchMainTab('issues')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer flex items-center gap-1">
+            <span>❓</span> 本月客戶問題彙總
           </button>
         </nav>
       </div>
@@ -113,22 +129,28 @@
         </div>
       </div>
 
-      <!-- 訂單列表表格 (自適應水平滑動) -->
-      <div class="bg-white rounded-xl shadow-sm overflow-x-auto border border-slate-100">
+      <!-- 訂單列表表格 (含固定標頭 & 出貨日排序) -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 sticky-table-container">
         <table class="w-full text-left border-collapse min-w-[1200px] sm:min-w-[1600px]">
-          <thead class="bg-slate-100 border-b border-slate-200 text-xs sm:text-sm">
+          <thead class="sticky-table-header text-xs sm:text-sm">
             <tr>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">單號/客戶/ERP</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">預計出貨日</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">硬體資訊與保固</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">軟體資訊與保固</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">金額與付款餘額</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">物流資訊</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">付款狀態</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">發票狀態</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">訂單狀態</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">備註記錄 (含追蹤)</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-600">操作</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">單號/客戶/ERP</th>
+              <!-- 出貨日排序按鈕 -->
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">
+                <button onclick="toggleShipDateSort()" class="flex items-center gap-1 hover:text-[#662E8D] transition cursor-pointer">
+                  <span>預計出貨日</span>
+                  <span id="shipDateSortIcon" class="text-xs bg-purple-100 text-[#662E8D] px-1 py-0.5 rounded">⇅ 預設</span>
+                </button>
+              </th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">硬體資訊與保固</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">軟體資訊與保固</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">金額與付款餘額</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">物流資訊</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">付款狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">發票狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">訂單狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">備註記錄 (含追蹤/問題)</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">操作</th>
             </tr>
           </thead>
           <tbody id="orderTableBody" class="text-xs sm:text-sm">
@@ -175,7 +197,7 @@
             <h3 class="font-bold text-slate-800 text-sm sm:text-base">🍕 出貨核心狀態分布</h3>
             <button onclick="downloadChartCanvas('chartStatusPie', '核心訂單狀態分布圖')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-56 sm:h-64 flex justify-center items-center"><canvas id="chartStatusPie"></canvas></div>
+          <div class="h-60 sm:h-64 flex justify-center items-center"><canvas id="chartStatusPie"></canvas></div>
         </div>
 
         <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100">
@@ -183,7 +205,7 @@
             <h3 class="font-bold text-slate-800 text-sm sm:text-base">💳 財務收款與發票狀態</h3>
             <button onclick="downloadChartCanvas('chartFinanceDoughnut', '財務與發票狀態統計')" class="text-[11px] bg-slate-100 px-2 py-0.5 rounded">📥 PNG</button>
           </div>
-          <div class="h-56 sm:h-64 flex justify-center items-center"><canvas id="chartFinanceDoughnut"></canvas></div>
+          <div class="h-60 sm:h-64 flex justify-center items-center"><canvas id="chartFinanceDoughnut"></canvas></div>
         </div>
 
         <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 md:col-span-2">
@@ -211,6 +233,44 @@
         </div>
       </div>
     </section>
+
+    <!-- ==================== 頁籤 3: 本月客戶問題彙總 ==================== -->
+    <section id="sectionIssues" class="hidden space-y-4 sm:space-y-6">
+      <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <h2 class="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>❓</span> 本月客戶問題與客訴彙總 (Issue Log)
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">自動彙整本月份各訂單備註中，標記為「⚠️ 客戶問題」的售後與服務紀錄。</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="renderMonthlyIssues()" class="bg-purple-50 text-[#662E8D] border border-purple-200 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-purple-100 cursor-pointer">
+            🔄 重新彙整
+          </button>
+          <button onclick="exportIssuesCsv()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-700 cursor-pointer shadow-sm">
+            📥 匯出 CSV 報表
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[700px]">
+          <thead class="bg-purple-50 text-[#662E8D] text-xs sm:text-sm border-b">
+            <tr>
+              <th class="p-3 w-28">紀錄日期</th>
+              <th class="p-3 w-36">訂單單號</th>
+              <th class="p-3 w-40">客戶名稱</th>
+              <th class="p-3">客戶問題 / 需求備註</th>
+              <th class="p-3 w-28">負責業務</th>
+              <th class="p-3 w-24 text-center">操作</th>
+            </tr>
+          </thead>
+          <tbody id="issuesTableBody" class="text-xs sm:text-sm">
+            <tr><td colspan="6" class="p-8 text-center text-slate-400">目前本月尚無登記之客戶問題紀錄 🎉</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <!-- 右下角 Go-to-Top 頂部按鈕 -->
@@ -220,22 +280,17 @@
     </svg>
   </button>
 
-  <!-- 🐶 P醬 AI 智慧助理 (RWD 全螢幕與自適應) -->
+  <!-- 🐶 P醬 AI 智慧助理 -->
   <div id="aiAgentContainer" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-20 z-50 flex flex-col items-end">
-    
-    <!-- P醬 互動按鈕 -->
     <button onclick="toggleAiPanel()" class="group relative flex flex-col items-center p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
-      <!-- 頂部提示氣泡 -->
       <span class="bg-[#662E8D] text-white text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-md border border-purple-300/40 mb-1 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
         <span>✨</span> P醬
       </span>
-      <!-- P醬 角色圖檔 -->
       <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
            alt="P醬" 
            class="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl transition-all duration-300">
     </button>
 
-    <!-- 對話彈窗視窗 (在手機端智慧縮放) -->
     <div id="aiPanel" class="hidden fixed sm:absolute inset-x-2 bottom-20 sm:inset-auto sm:bottom-24 sm:right-0 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[70vh] sm:h-[480px]">
       <div class="bg-[#662E8D] text-white p-3 sm:p-3.5 flex justify-between items-center">
         <div class="flex items-center gap-2">
@@ -413,7 +468,7 @@
     </div>
   </div>
 
-  <!-- 建立 / 編輯訂單 Modal -->
+  <!-- 建立 / 編輯訂單 Modal (支援多筆自訂名稱附件) -->
   <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <h2 id="modalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
@@ -435,7 +490,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-medium mb-1">負責業務</label>
             <input type="text" id="salesName" required class="w-full border rounded-lg p-2">
@@ -444,9 +499,16 @@
             <label class="block font-medium mb-1">ERP 單號 (選填)</label>
             <input type="text" id="erpId" placeholder="例如：ERP-20240901" class="w-full border rounded-lg p-2">
           </div>
-          <div>
-            <label class="block font-medium mb-1">檔案連結 (附件/目錄)</label>
-            <input type="url" id="fileUrl" placeholder="https://..." class="w-full border rounded-lg p-2">
+        </div>
+
+        <!-- 📎 動態多筆附件設定區域 -->
+        <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="font-bold text-blue-900 flex items-center gap-1">📎 檔案附件與目錄 (可新增多筆並自訂名稱)</label>
+            <button type="button" onclick="addAttachmentRow('', '')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-xs font-bold cursor-pointer">+ 新增附件</button>
+          </div>
+          <div id="attachmentsContainer" class="space-y-2">
+            <!-- 動態插入附件輸入列 -->
           </div>
         </div>
 
@@ -570,20 +632,29 @@
     </div>
   </div>
 
-  <!-- 📌 新增售後/備註 Modal -->
+  <!-- 📌 新增售後/備註 Modal (選單支援客戶問題分類) -->
   <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl">
-      <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增售後/庫存備註</h3>
+      <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增售後與對接備註紀錄</h3>
       <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-3 sm:mb-4 font-bold"></p>
       <input type="hidden" id="currentOrderId">
       
-      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度或庫存調撥備註..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
+      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度、備貨說明或客戶反應之問題..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
       
-      <div class="flex items-center gap-2 bg-purple-50 p-2.5 rounded-lg border border-purple-200 mb-4 cursor-pointer" onclick="document.getElementById('chkNeedTrack').click()">
-        <input type="checkbox" id="chkNeedTrack" onclick="event.stopPropagation()" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 focus:ring-[#662E8D] cursor-pointer">
-        <label for="chkNeedTrack" class="text-xs font-bold text-[#662E8D] cursor-pointer select-none">
-          📌 標記為需要追蹤事項 (例: 待辦、預約維修)
-        </label>
+      <div class="space-y-2 mb-4">
+        <div class="flex items-center gap-2 bg-purple-50 p-2.5 rounded-lg border border-purple-200 cursor-pointer" onclick="document.getElementById('chkNeedTrack').click()">
+          <input type="checkbox" id="chkNeedTrack" onclick="event.stopPropagation()" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 focus:ring-[#662E8D] cursor-pointer">
+          <label for="chkNeedTrack" class="text-xs font-bold text-[#662E8D] cursor-pointer select-none">
+            📌 標記為內部待辦追蹤 (例: 預約維修、進料跟催)
+          </label>
+        </div>
+
+        <div class="flex items-center gap-2 bg-rose-50 p-2.5 rounded-lg border border-rose-200 cursor-pointer" onclick="document.getElementById('chkIsIssue').click()">
+          <input type="checkbox" id="chkIsIssue" onclick="event.stopPropagation()" class="w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer">
+          <label for="chkIsIssue" class="text-xs font-bold text-rose-700 cursor-pointer select-none">
+            ⚠️ 標記為客戶問題 (將同步歸類至「本月客戶問題彙總」)
+          </label>
+        </div>
       </div>
 
       <div class="flex justify-end gap-2">
@@ -599,10 +670,13 @@
     var orders = [];
     var chartInstances = {};
     var currentChartTimeRange = 'all';
+    
+    // 出貨日排序狀態：'default' | 'asc' (最近->最遠) | 'desc' (最遠->最近)
+    var shipDateSortState = 'default';
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
-    // 🐶 安全由 Google Apps Script 後端驅動的 P醬 AI Agent 對話機制
+    // 🐶 P醬 AI Agent 對話機制
     async function sendAiMessage() {
       var inputEl = document.getElementById('aiInput');
       var userMsg = inputEl.value.trim();
@@ -671,6 +745,44 @@
 
     function scrollToTop() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 預計出貨日雙向排序切換
+    function toggleShipDateSort() {
+      var sortIcon = document.getElementById("shipDateSortIcon");
+      if (shipDateSortState === 'default' || shipDateSortState === 'desc') {
+        shipDateSortState = 'asc';
+        sortIcon.innerText = "⬆️ 最近→最遠";
+      } else {
+        shipDateSortState = 'desc';
+        sortIcon.innerText = "⬇️ 最遠→最近";
+      }
+      renderOrders();
+    }
+
+    // 動態多筆附件管理 DOM
+    function addAttachmentRow(name, url) {
+      var container = document.getElementById("attachmentsContainer");
+      var div = document.createElement("div");
+      div.className = "flex items-center gap-2 attachment-row";
+      div.innerHTML = 
+        '<input type="text" placeholder="附件名稱 (例: 簽收單)" value="' + (name || '') + '" class="att-name border rounded p-1.5 text-xs w-1/3 outline-none bg-white">' +
+        '<input type="url" placeholder="連結 URL (https://...)" value="' + (url || '') + '" class="att-url border rounded p-1.5 text-xs w-2/3 outline-none bg-white">' +
+        '<button type="button" onclick="this.parentElement.remove()" class="text-rose-500 font-bold px-1.5 hover:bg-rose-100 rounded">✕</button>';
+      container.appendChild(div);
+    }
+
+    function getAttachmentsData() {
+      var rows = document.querySelectorAll("#attachmentsContainer .attachment-row");
+      var list = [];
+      rows.forEach(function(r) {
+        var name = r.querySelector(".att-name").value.trim();
+        var url = r.querySelector(".att-url").value.trim();
+        if (url) {
+          list.push({ name: name || "附件連結", url: url });
+        }
+      });
+      return list;
     }
 
     function autoGenerateDNCode() {
@@ -746,6 +858,21 @@
             return str.indexOf("T") !== -1 ? str.split("T")[0] : str;
           };
 
+          // 解析多筆 JSON 格式附件 (若相容舊版單一連結)
+          var rawFileUrl = String(item["J"] || item["檔案連結"] || "");
+          var parsedAttachments = [];
+          if (rawFileUrl) {
+            try {
+              if (rawFileUrl.indexOf("[") === 0) {
+                parsedAttachments = JSON.parse(rawFileUrl);
+              } else {
+                parsedAttachments = [{ name: "附件檔案", url: rawFileUrl }];
+              }
+            } catch(e) {
+              parsedAttachments = [{ name: "附件檔案", url: rawFileUrl }];
+            }
+          }
+
           return {
             orderId: orderId,
             customer: String(item["B"] || item["客戶名稱"] || ""),
@@ -756,7 +883,8 @@
             paymentStatus: String(item["G"] || item["付款狀態"] || "未付款"),
             invoiceStatus: String(item["發票狀態"] || item["H"] || item.invoiceStatus || "未開發票"),
             status: String(item["I"] || item["訂單狀態"] || "待處理"),
-            fileUrl: String(item["J"] || item["檔案連結"] || ""),
+            fileUrl: rawFileUrl,
+            attachments: parsedAttachments,
             notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
             shipDate: formattedShipDate || "-",
             erpId: String(item["M"] || item["ERP編號"] || ""),
@@ -775,6 +903,7 @@
         });
 
         renderOrders();
+        renderMonthlyIssues();
       } catch (err) {
         console.error("資料解析發生錯誤:", err);
         renderOrders();
@@ -904,6 +1033,100 @@
       }
     }
 
+    // 彙整本月客戶問題彙總
+    function renderMonthlyIssues() {
+      var tbody = document.getElementById("issuesTableBody");
+      tbody.innerHTML = "";
+
+      var now = new Date();
+      var currentYear = now.getFullYear();
+      var currentMonth = now.getMonth() + 1; // 1-12
+
+      var issueList = [];
+
+      orders.forEach(function(o) {
+        if (Array.isArray(o.notes)) {
+          o.notes.forEach(function(n) {
+            if (n.indexOf("⚠️ [客戶問題]") !== -1) {
+              // 嘗試抓取日期
+              var dateMatch = n.match(/\[(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}|\d{1,2}[\/-]\d{1,2})\]/);
+              var noteDateStr = dateMatch ? dateMatch[1] : "";
+              var isCurrentMonth = true;
+
+              if (noteDateStr) {
+                var p = noteDateStr.split(/[\/-]/);
+                if (p.length === 3) {
+                  if (parseInt(p[0], 10) !== currentYear || parseInt(p[1], 10) !== currentMonth) {
+                    isCurrentMonth = false;
+                  }
+                } else if (p.length === 2) {
+                  if (parseInt(p[0], 10) !== currentMonth) {
+                    isCurrentMonth = false;
+                  }
+                }
+              }
+
+              if (isCurrentMonth) {
+                var cleanIssueText = n.replace("⚠️ [客戶問題]", "").replace("📌 [待追蹤]", "").trim();
+                issueList.push({
+                  orderId: o.orderId,
+                  customer: o.customer,
+                  sales: o.sales,
+                  date: noteDateStr || "本月",
+                  text: cleanIssueText
+                });
+              }
+            }
+          });
+        }
+      });
+
+      if (issueList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">目前本月尚無登記之客戶問題紀錄 🎉</td></tr>';
+        return;
+      }
+
+      issueList.forEach(function(issue) {
+        var tr = document.createElement("tr");
+        tr.className = "border-b hover:bg-purple-50/20";
+        tr.innerHTML = 
+          '<td class="p-3 font-mono font-medium text-slate-600">' + issue.date + '</td>' +
+          '<td class="p-3 font-mono font-bold text-[#662E8D]">' + issue.orderId + '</td>' +
+          '<td class="p-3 font-bold text-slate-800">' + issue.customer + '</td>' +
+          '<td class="p-3 text-rose-700 bg-rose-50/50 rounded font-medium">' + issue.text + '</td>' +
+          '<td class="p-3 text-slate-600">' + issue.sales + '</td>' +
+          '<td class="p-3 text-center"><button onclick="openOrderModal(\'' + issue.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportIssuesCsv() {
+      var rows = [["紀錄日期", "訂單單號", "客戶名稱", "客戶問題與紀錄", "負責業務"]];
+      
+      var tableRows = document.querySelectorAll("#issuesTableBody tr");
+      tableRows.forEach(function(r) {
+        var cols = r.querySelectorAll("td");
+        if (cols.length >= 5) {
+          rows.push([
+            cols[0].innerText.trim(),
+            cols[1].innerText.trim(),
+            cols[2].innerText.trim(),
+            cols[3].innerText.trim().replace(/\n/g, " "),
+            cols[4].innerText.trim()
+          ]);
+        }
+      });
+
+      var csvContent = "\uFEFF" + rows.map(e => e.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(",")).join("\n");
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "本月客戶問題彙總_" + new Date().toISOString().split('T')[0] + ".csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     function openShipmentTrackerModal() {
       var tbodyOverdue = document.getElementById("trackerTableOverdueBody");
       var tbody5 = document.getElementById("trackerTable5Body");
@@ -1030,21 +1253,29 @@
     function switchMainTab(tab) {
       var btnOrders = document.getElementById("tabBtnOrders");
       var btnAnalytics = document.getElementById("tabBtnAnalytics");
+      var btnIssues = document.getElementById("tabBtnIssues");
+
       var secOrders = document.getElementById("sectionOrders");
       var secAnalytics = document.getElementById("sectionAnalytics");
+      var secIssues = document.getElementById("sectionIssues");
+
+      // 重設所有按鈕樣式
+      [btnOrders, btnAnalytics, btnIssues].forEach(b => {
+        b.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+      });
+      [secOrders, secAnalytics, secIssues].forEach(s => s.classList.add("hidden"));
 
       if (tab === 'orders') {
         btnOrders.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnAnalytics.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
         secOrders.classList.remove("hidden");
-        secAnalytics.classList.add("hidden");
-      } else {
+      } else if (tab === 'analytics') {
         btnAnalytics.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnOrders.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
         secAnalytics.classList.remove("hidden");
-        secOrders.classList.add("hidden");
-        
         safeRenderCharts();
+      } else if (tab === 'issues') {
+        btnIssues.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        secIssues.classList.remove("hidden");
+        renderMonthlyIssues();
       }
     }
 
@@ -1073,6 +1304,7 @@
     function openOrderModal(orderId) {
       document.getElementById("orderForm").reset();
       document.getElementById("editOrderId").value = "";
+      document.getElementById("attachmentsContainer").innerHTML = ""; // 清空附件
       
       var defaultToday = new Date().toISOString().split('T')[0];
       document.getElementById("shipDate").value = defaultToday;
@@ -1107,12 +1339,22 @@
         document.getElementById("orderStatus").value = o.status || "待處理";
         document.getElementById("logisticsCompany").value = o.logisticsCompany || "";
         document.getElementById("logisticsNo").value = o.logisticsNo || "";
-        document.getElementById("fileUrl").value = o.fileUrl || "";
         document.getElementById("initialNoteBox").classList.add("hidden");
+
+        // 載入多筆附件
+        if (Array.isArray(o.attachments) && o.attachments.length > 0) {
+          o.attachments.forEach(function(att) {
+            addAttachmentRow(att.name, att.url);
+          });
+        } else {
+          addAttachmentRow("", "");
+        }
+
       } else {
         document.getElementById("modalTitle").innerText = "建立 AISO 一體機新訂單";
         document.getElementById("customOrderId").disabled = false;
         document.getElementById("initialNoteBox").classList.remove("hidden");
+        addAttachmentRow("", ""); // 預設提供一列附件輸入
         autoGenerateDNCode();
       }
 
@@ -1136,7 +1378,8 @@
         return;
       }
 
-      orders.filter(function(o) {
+      // 1. 篩選
+      var filtered = orders.filter(function(o) {
         var matchSt = filterSt === "ALL" || o.status === filterSt;
         var matchInv = filterInv === "ALL" || o.invoiceStatus === filterInv;
         var matchSearch = String(o.customer).toLowerCase().indexOf(search) !== -1 || 
@@ -1146,7 +1389,18 @@
                             String(o.logisticsNo).toLowerCase().indexOf(search) !== -1 ||
                             String(o.orderId).toLowerCase().indexOf(search) !== -1;
         return matchSt && matchInv && matchSearch;
-      }).forEach(function(o) {
+      });
+
+      // 2. 出貨日排序機制
+      if (shipDateSortState !== 'default') {
+        filtered.sort(function(a, b) {
+          var dateA = a.shipDate && a.shipDate !== '-' ? new Date(a.shipDate.replace(/\//g, "-")) : new Date(0);
+          var dateB = b.shipDate && b.shipDate !== '-' ? new Date(b.shipDate.replace(/\//g, "-")) : new Date(0);
+          return shipDateSortState === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+      }
+
+      filtered.forEach(function(o) {
         var tr = document.createElement("tr");
         tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-xs sm:text-sm";
         
@@ -1160,6 +1414,8 @@
                 totalPendingTodos++;
                 return '<div class="text-xs font-bold text-[#662E8D] bg-purple-50 p-1.5 rounded mb-1 border border-purple-200">📌 [待追蹤] ' + n.replace("📌 [待追蹤]", "").trim() + '</div>';
               }
+            } else if (n.indexOf("⚠️ [客戶問題]") !== -1) {
+              return '<div class="text-xs font-bold text-rose-700 bg-rose-50 p-1.5 rounded mb-1 border border-rose-200">⚠️ [客戶問題] ' + n.replace("⚠️ [客戶問題]", "").trim() + '</div>';
             }
             return '<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">' + n + '</div>';
           }).join('');
@@ -1207,9 +1463,16 @@
           ? '<div class="font-medium text-slate-700">' + (o.logisticsCompany || '物流') + '</div>' + logisticsNosHtml
           : '<span class="text-slate-300">-</span>';
 
+        // 渲染多筆自訂名稱附件按鈕
+        var fileLinksHtml = '<span class="text-slate-300 text-xs">-</span>';
+        if (Array.isArray(o.attachments) && o.attachments.length > 0) {
+          fileLinksHtml = o.attachments.map(function(att) {
+            return '<a href="' + att.url + '" target="_blank" class="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded font-medium truncate max-w-[110px]" title="' + att.name + '">📎 ' + att.name + '</a>';
+          }).join('');
+        }
+
         var invClass = o.invoiceStatus === '已開發票' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200';
         var statusClass = ['到府維修','換貨處理中','重新出貨','退貨處理'].indexOf(o.status) !== -1 ? 'text-rose-600 border-rose-300 font-bold bg-rose-50' : '';
-        var fileLinkHtml = o.fileUrl ? '<a href="' + o.fileUrl + '" target="_blank" class="text-xs text-blue-500 underline">附件</a>' : '';
 
         tr.innerHTML = 
           '<td class="p-2.5 sm:p-3">' +
@@ -1255,7 +1518,7 @@
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
               '<button onclick="openNoteModal(\'' + o.orderId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
-              fileLinkHtml +
+              '<div class="flex flex-wrap gap-1 mt-0.5">' + fileLinksHtml + '</div>' +
             '</div>' +
           '</td>';
 
@@ -1279,6 +1542,10 @@
 
       var initialNoteText = document.getElementById("initialNote").value;
       var dateStr = new Date().toLocaleDateString();
+
+      // 取得多筆附件資料 JSON 字串
+      var attachmentsList = getAttachmentsData();
+      var fileUrlJson = JSON.stringify(attachmentsList);
 
       var payload = {
         action: isEdit ? "update" : "create",
@@ -1304,7 +1571,7 @@
         status: document.getElementById("orderStatus").value,
         logisticsCompany: document.getElementById("logisticsCompany").value,
         logisticsNo: document.getElementById("logisticsNo").value,
-        fileUrl: document.getElementById("fileUrl").value
+        fileUrl: fileUrlJson
       };
 
       if (!isEdit && initialNoteText) {
@@ -1336,6 +1603,7 @@
       document.getElementById("noteTargetOrder").innerText = "針對單號: " + orderId;
       document.getElementById("newNoteText").value = "";
       document.getElementById("chkNeedTrack").checked = false;
+      document.getElementById("chkIsIssue").checked = false;
       toggleModal('noteModal', true);
     }
 
@@ -1343,6 +1611,7 @@
       var orderId = document.getElementById("currentOrderId").value;
       var text = document.getElementById("newNoteText").value.trim();
       var needTrack = document.getElementById("chkNeedTrack").checked;
+      var isIssue = document.getElementById("chkIsIssue").checked;
       
       if (!text) return;
 
@@ -1352,6 +1621,10 @@
         var dateStr = new Date().toLocaleDateString();
         
         var formattedNote = "[" + dateStr + "] " + text;
+        
+        if (isIssue) {
+          formattedNote = "⚠️ [客戶問題] " + formattedNote;
+        }
         if (needTrack) {
           formattedNote = "📌 [待追蹤] " + formattedNote;
         }
@@ -1360,6 +1633,7 @@
 
         toggleModal('noteModal', false);
         renderOrders();
+        renderMonthlyIssues();
 
         await fetch(API_URL, {
           method: "POST",
