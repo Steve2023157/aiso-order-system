@@ -54,7 +54,7 @@
           <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理系統</h1>
         </div>
         
-        <!-- 主頁面頁籤切換 (新增客戶問題彙總) -->
+        <!-- 主頁面頁籤切換 -->
         <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm flex-wrap gap-1">
           <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             📋 訂單列表
@@ -63,7 +63,7 @@
             📊 數據圖表
           </button>
           <button id="tabBtnIssues" onclick="switchMainTab('issues')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer flex items-center gap-1">
-            <span>❓</span> 本月客戶問題彙總
+            <span>❓</span> 客戶問題與客訴彙總
           </button>
         </nav>
       </div>
@@ -234,39 +234,59 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 3: 本月客戶問題彙總 ==================== -->
+    <!-- ==================== 頁籤 3: 客戶問題與客訴彙總 (支援時間篩選與勾選完成) ==================== -->
     <section id="sectionIssues" class="hidden space-y-4 sm:space-y-6">
-      <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center flex-wrap gap-3">
-        <div>
-          <h2 class="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span>❓</span> 本月客戶問題與客訴彙總 (Issue Log)
-          </h2>
-          <p class="text-xs text-slate-500 mt-1">自動彙整本月份各訂單備註中，標記為「⚠️ 客戶問題」的售後與服務紀錄。</p>
+      <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 space-y-3">
+        <div class="flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h2 class="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span>❓</span> 客戶問題與客訴彙總 (Issue Log)
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">自動彙整各訂單備註中標記為「⚠️ 客戶問題」之紀錄，勾選即可標記問題已解決。</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="renderMonthlyIssues()" class="bg-purple-50 text-[#662E8D] border border-purple-200 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-purple-100 cursor-pointer">
+              🔄 重新彙整
+            </button>
+            <button onclick="exportIssuesCsv()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-700 cursor-pointer shadow-sm">
+              📥 匯出 CSV 報表
+            </button>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button onclick="renderMonthlyIssues()" class="bg-purple-50 text-[#662E8D] border border-purple-200 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium hover:bg-purple-100 cursor-pointer">
-            🔄 重新彙整
-          </button>
-          <button onclick="exportIssuesCsv()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold hover:bg-emerald-700 cursor-pointer shadow-sm">
-            📥 匯出 CSV 報表
-          </button>
+
+        <!-- 📅 客戶問題專用時間區間篩選列 -->
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs sm:text-sm">
+          <span class="font-bold text-slate-700 flex items-center gap-1">📅 問題時間篩選：</span>
+          <div class="flex bg-slate-100 p-1 rounded-lg gap-1 flex-wrap">
+            <button onclick="setIssueTimeRange('month')" id="btnIssueMonth" class="px-2.5 py-1 rounded text-xs font-bold bg-white text-[#662E8D] shadow-sm cursor-pointer">本月問題</button>
+            <button onclick="setIssueTimeRange('3m')" id="btnIssue3m" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer">近三個月</button>
+            <button onclick="setIssueTimeRange('all')" id="btnIssueAll" class="px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer">全部時間</button>
+          </div>
+
+          <div class="flex items-center gap-1 text-xs text-slate-500 ml-auto flex-wrap">
+            <span>自訂問題起訖：</span>
+            <input type="date" id="issueStartDate" onchange="onCustomIssueDateChange()" class="border border-slate-300 rounded px-1.5 py-0.5 bg-white outline-none">
+            <span>至</span>
+            <input type="date" id="issueEndDate" onchange="onCustomIssueDateChange()" class="border border-slate-300 rounded px-1.5 py-0.5 bg-white outline-none">
+          </div>
         </div>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[700px]">
+        <table class="w-full text-left border-collapse min-w-[800px]">
           <thead class="bg-purple-50 text-[#662E8D] text-xs sm:text-sm border-b">
             <tr>
+              <th class="p-3 text-center w-12">狀態</th>
               <th class="p-3 w-28">紀錄日期</th>
               <th class="p-3 w-36">訂單單號</th>
               <th class="p-3 w-40">客戶名稱</th>
-              <th class="p-3">客戶問題 / 需求備註</th>
+              <th class="p-3">客戶問題 / 需求與處理對策</th>
               <th class="p-3 w-28">負責業務</th>
               <th class="p-3 w-24 text-center">操作</th>
             </tr>
           </thead>
           <tbody id="issuesTableBody" class="text-xs sm:text-sm">
-            <tr><td colspan="6" class="p-8 text-center text-slate-400">目前本月尚無登記之客戶問題紀錄 🎉</td></tr>
+            <tr><td colspan="7" class="p-8 text-center text-slate-400">目前尚無登記之客戶問題紀錄 🎉</td></tr>
           </tbody>
         </table>
       </div>
@@ -468,7 +488,7 @@
     </div>
   </div>
 
-  <!-- 建立 / 編輯訂單 Modal (支援多筆自訂名稱附件) -->
+  <!-- 建立 / 編輯訂單 Modal -->
   <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <h2 id="modalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
@@ -632,7 +652,7 @@
     </div>
   </div>
 
-  <!-- 📌 新增售後/備註 Modal (選單支援客戶問題分類) -->
+  <!-- 📌 新增售後/備註 Modal -->
   <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl">
       <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增售後與對接備註紀錄</h3>
@@ -652,7 +672,7 @@
         <div class="flex items-center gap-2 bg-rose-50 p-2.5 rounded-lg border border-rose-200 cursor-pointer" onclick="document.getElementById('chkIsIssue').click()">
           <input type="checkbox" id="chkIsIssue" onclick="event.stopPropagation()" class="w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer">
           <label for="chkIsIssue" class="text-xs font-bold text-rose-700 cursor-pointer select-none">
-            ⚠️ 標記為客戶問題 (將同步歸類至「本月客戶問題彙總」)
+            ⚠️ 標記為客戶問題 (將同步歸類至「客戶問題彙總」)
           </label>
         </div>
       </div>
@@ -673,6 +693,9 @@
     
     // 出貨日排序狀態：'default' | 'asc' (最近->最遠) | 'desc' (最遠->最近)
     var shipDateSortState = 'default';
+
+    // 客戶問題時間篩選狀態：'month' | '3m' | 'all' | 'custom'
+    var currentIssueTimeRange = 'month';
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
@@ -1033,7 +1056,38 @@
       }
     }
 
-    // 彙整本月客戶問題彙總
+    // 切換客戶問題時間篩選
+    function setIssueTimeRange(range) {
+      currentIssueTimeRange = range;
+      var btns = ['month', '3m', 'all'];
+      btns.forEach(function(b) {
+        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) {
+          if (b === range) {
+            btn.className = "px-2.5 py-1 rounded text-xs font-bold bg-white text-[#662E8D] shadow-sm cursor-pointer";
+          } else {
+            btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
+          }
+        }
+      });
+
+      document.getElementById("issueStartDate").value = "";
+      document.getElementById("issueEndDate").value = "";
+
+      renderMonthlyIssues();
+    }
+
+    function onCustomIssueDateChange() {
+      var btns = ['month', '3m', 'all'];
+      btns.forEach(function(b) {
+        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
+      });
+      currentIssueTimeRange = 'custom';
+      renderMonthlyIssues();
+    }
+
+    // 彙整客戶問題（支援時間篩選與打勾已解決切換）
     function renderMonthlyIssues() {
       var tbody = document.getElementById("issuesTableBody");
       tbody.innerHTML = "";
@@ -1042,38 +1096,63 @@
       var currentYear = now.getFullYear();
       var currentMonth = now.getMonth() + 1; // 1-12
 
+      var startDate = null;
+      var endDate = null;
+
+      if (currentIssueTimeRange === 'month') {
+        startDate = new Date(currentYear, currentMonth - 1, 1);
+        endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+      } else if (currentIssueTimeRange === '3m') {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      } else if (currentIssueTimeRange === 'custom') {
+        var sVal = document.getElementById("issueStartDate").value;
+        var eVal = document.getElementById("issueEndDate").value;
+        if (sVal) startDate = new Date(sVal);
+        if (eVal) {
+          endDate = new Date(eVal);
+          endDate.setHours(23, 59, 59, 999);
+        }
+      }
+
       var issueList = [];
 
       orders.forEach(function(o) {
         if (Array.isArray(o.notes)) {
-          o.notes.forEach(function(n) {
-            if (n.indexOf("⚠️ [客戶問題]") !== -1) {
-              // 嘗試抓取日期
+          o.notes.forEach(function(n, index) {
+            if (n.indexOf("⚠️ [客戶問題]") !== -1 || n.indexOf("✅ [已解決]") !== -1) {
+              // 抓取日期
               var dateMatch = n.match(/\[(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}|\d{1,2}[\/-]\d{1,2})\]/);
               var noteDateStr = dateMatch ? dateMatch[1] : "";
-              var isCurrentMonth = true;
+              var inRange = true;
 
-              if (noteDateStr) {
+              if (noteDateStr && (startDate || endDate)) {
                 var p = noteDateStr.split(/[\/-]/);
+                var noteDate;
                 if (p.length === 3) {
-                  if (parseInt(p[0], 10) !== currentYear || parseInt(p[1], 10) !== currentMonth) {
-                    isCurrentMonth = false;
-                  }
+                  noteDate = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
                 } else if (p.length === 2) {
-                  if (parseInt(p[0], 10) !== currentMonth) {
-                    isCurrentMonth = false;
-                  }
+                  noteDate = new Date(currentYear, parseInt(p[0], 10) - 1, parseInt(p[1], 10));
+                }
+
+                if (noteDate) {
+                  if (startDate && noteDate < startDate) inRange = false;
+                  if (endDate && noteDate > endDate) inRange = false;
                 }
               }
 
-              if (isCurrentMonth) {
-                var cleanIssueText = n.replace("⚠️ [客戶問題]", "").replace("📌 [待追蹤]", "").trim();
+              if (inRange) {
+                var isSolved = n.indexOf("✅ [已解決]") !== -1 || n.indexOf("✅") !== -1;
+                var cleanIssueText = n.replace("⚠️ [客戶問題]", "").replace("✅ [已解決]", "").replace("📌 [待追蹤]", "").replace("✅", "").trim();
+
                 issueList.push({
                   orderId: o.orderId,
                   customer: o.customer,
                   sales: o.sales,
-                  date: noteDateStr || "本月",
-                  text: cleanIssueText
+                  date: noteDateStr || "歷史紀錄",
+                  text: cleanIssueText,
+                  isSolved: isSolved,
+                  noteIndex: index,
+                  rawNote: n
                 });
               }
             }
@@ -1082,37 +1161,83 @@
       });
 
       if (issueList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400">目前本月尚無登記之客戶問題紀錄 🎉</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">目前選擇時間區間內無客戶問題紀錄 🎉</td></tr>';
         return;
       }
 
       issueList.forEach(function(issue) {
         var tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50/20";
+        tr.className = "border-b hover:bg-purple-50/20 text-xs sm:text-sm " + (issue.isSolved ? "bg-slate-50/60 opacity-60" : "");
+
+        var chkHtml = '<input type="checkbox" ' + (issue.isSolved ? 'checked' : '') + ' onchange="toggleIssueSolvedStatus(\'' + issue.orderId + '\', ' + issue.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
+
+        var textStyle = issue.isSolved 
+          ? "line-through text-slate-400 bg-slate-100 p-2 rounded" 
+          : "text-rose-700 bg-rose-50/80 p-2 rounded font-medium border border-rose-100";
+
+        var statusBadge = issue.isSolved 
+          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已解決 ✅</span>' 
+          : '<span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] font-bold animate-pulse">待處理 ⚠️</span>';
+
         tr.innerHTML = 
+          '<td class="p-3 text-center">' + chkHtml + '</td>' +
           '<td class="p-3 font-mono font-medium text-slate-600">' + issue.date + '</td>' +
           '<td class="p-3 font-mono font-bold text-[#662E8D]">' + issue.orderId + '</td>' +
           '<td class="p-3 font-bold text-slate-800">' + issue.customer + '</td>' +
-          '<td class="p-3 text-rose-700 bg-rose-50/50 rounded font-medium">' + issue.text + '</td>' +
+          '<td class="p-3"><div class="' + textStyle + ' mb-1">' + issue.text + '</div><div>' + statusBadge + '</div></td>' +
           '<td class="p-3 text-slate-600">' + issue.sales + '</td>' +
           '<td class="p-3 text-center"><button onclick="openOrderModal(\'' + issue.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
+        
         tbody.appendChild(tr);
       });
     }
 
+    // 勾選/取消問題解決狀態並同步寫回試算表
+    async function toggleIssueSolvedStatus(orderId, noteIndex, isSolved) {
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
+        var originalNote = order.notes[noteIndex];
+        
+        if (isSolved) {
+          order.notes[noteIndex] = originalNote.replace("⚠️ [客戶問題]", "✅ [已解決] ✅");
+          if (order.notes[noteIndex].indexOf("✅") === -1) {
+            order.notes[noteIndex] = "✅ [已解決] " + originalNote;
+          }
+        } else {
+          order.notes[noteIndex] = originalNote.replace("✅ [已解決]", "⚠️ [客戶問題]").replace("✅", "");
+        }
+
+        renderOrders();
+        renderMonthlyIssues();
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join("\n")
+          })
+        });
+      }
+    }
+
     function exportIssuesCsv() {
-      var rows = [["紀錄日期", "訂單單號", "客戶名稱", "客戶問題與紀錄", "負責業務"]];
+      var rows = [["狀態", "紀錄日期", "訂單單號", "客戶名稱", "客戶問題與處理紀錄", "負責業務"]];
       
       var tableRows = document.querySelectorAll("#issuesTableBody tr");
       tableRows.forEach(function(r) {
         var cols = r.querySelectorAll("td");
-        if (cols.length >= 5) {
+        if (cols.length >= 6) {
+          var chk = cols[0].querySelector("input[type='checkbox']");
+          var isSolved = chk && chk.checked ? "已解決" : "待處理";
           rows.push([
-            cols[0].innerText.trim(),
+            isSolved,
             cols[1].innerText.trim(),
             cols[2].innerText.trim(),
-            cols[3].innerText.trim().replace(/\n/g, " "),
-            cols[4].innerText.trim()
+            cols[3].innerText.trim(),
+            cols[4].innerText.trim().replace(/\n/g, " "),
+            cols[5].innerText.trim()
           ]);
         }
       });
@@ -1121,7 +1246,7 @@
       var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       var link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "本月客戶問題彙總_" + new Date().toISOString().split('T')[0] + ".csv";
+      link.download = "客戶問題與客訴彙總報表_" + new Date().toISOString().split('T')[0] + ".csv";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1416,6 +1541,8 @@
               }
             } else if (n.indexOf("⚠️ [客戶問題]") !== -1) {
               return '<div class="text-xs font-bold text-rose-700 bg-rose-50 p-1.5 rounded mb-1 border border-rose-200">⚠️ [客戶問題] ' + n.replace("⚠️ [客戶問題]", "").trim() + '</div>';
+            } else if (n.indexOf("✅ [已解決]") !== -1) {
+              return '<div class="text-xs text-slate-400 bg-slate-100 p-1.5 rounded mb-1 line-through">✅ [已解決] ' + n.replace("✅ [已解決]", "").replace("✅", "").trim() + '</div>';
             }
             return '<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">' + n + '</div>';
           }).join('');
