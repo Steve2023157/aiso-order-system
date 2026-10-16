@@ -19,7 +19,7 @@
     /* P醬 懸浮呼吸動畫 */
     @keyframes p-float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
+      50% { transform: translateY(-8px); }
     }
     .p-醬-float {
       animation: p-float 3s ease-in-out infinite;
@@ -299,18 +299,37 @@
     </svg>
   </button>
 
-  <!-- 🐶 P醬 AI 智慧助理 -->
-  <div id="aiAgentContainer" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-20 z-50 flex flex-col items-end">
-    <button onclick="toggleAiPanel()" class="group relative flex flex-col items-center p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
-      <span class="bg-[#662E8D] text-white text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-md border border-purple-300/40 mb-1 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
-        <span>✨</span> P醬
-      </span>
-      <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
-           alt="P醬" 
-           class="w-14 h-14 sm:w-20 sm:h-20 object-contain drop-shadow-xl transition-all duration-300">
-    </button>
+  <!-- 🐶 P醬 AI 智慧助理 (放大 + 可收起/叫出功能) -->
+  <!-- 1. 當 P醬 被收起時顯示的重新喚醒按鈕 (預設隱藏) -->
+  <button id="btnRestoreP醬" onclick="restoreP醬()" class="hidden fixed bottom-6 right-6 z-50 bg-[#662E8D] hover:bg-[#522373] text-white px-3.5 py-2 rounded-full shadow-2xl font-bold text-xs flex items-center gap-1.5 transition-all duration-300 cursor-pointer border border-purple-300">
+    <span>✨</span> 叫出 P醬
+  </button>
 
-    <div id="aiPanel" class="hidden fixed sm:absolute inset-x-2 bottom-20 sm:inset-auto sm:bottom-24 sm:right-0 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[70vh] sm:h-[480px]">
+  <!-- 2. P醬 主懸浮按鈕容器 -->
+  <div id="aiAgentContainer" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-12 z-50 flex flex-col items-end transition-all duration-300">
+    <!-- P醬 角色區塊 (尺寸大幅放大至 w-20 h-20 ~ w-24 h-24) -->
+    <div class="group relative flex flex-col items-center">
+      <!-- 氣泡與收起按鈕 -->
+      <div class="flex items-center gap-1 mb-1">
+        <span class="bg-[#662E8D] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md border border-purple-300/40 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
+          <span>✨</span> P醬
+        </span>
+        <!-- 收起 P醬 按鈕 -->
+        <button onclick="hideP醬()" class="bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow transition-all cursor-pointer" title="暫時收起 P醬">
+          ✕
+        </button>
+      </div>
+
+      <!-- 點擊 P醬 圖片開啟/關閉對話視窗 -->
+      <button onclick="toggleAiPanel()" class="p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
+        <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
+             alt="P醬" 
+             class="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-2xl transition-all duration-300">
+      </button>
+    </div>
+
+    <!-- 對話彈窗視窗 -->
+    <div id="aiPanel" class="hidden fixed sm:absolute inset-x-2 bottom-24 sm:inset-auto sm:bottom-28 sm:right-0 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[70vh] sm:h-[480px]">
       <div class="bg-[#662E8D] text-white p-3 sm:p-3.5 flex justify-between items-center">
         <div class="flex items-center gap-2">
           <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow">
@@ -713,9 +732,19 @@
     var currentChartTimeRange = 'all';
     var shipDateSortState = 'default';
     var currentIssueTimeRange = 'month';
-
-    // 待辦事項頁籤狀態：'pending' | 'completed'
     var currentTodoTab = 'pending';
+
+    // 收起 P醬
+    function hideP醬() {
+      document.getElementById('aiAgentContainer').classList.add('hidden');
+      document.getElementById('btnRestoreP醬').classList.remove('hidden');
+    }
+
+    // 叫出 P醬
+    function restoreP醬() {
+      document.getElementById('aiAgentContainer').classList.remove('hidden');
+      document.getElementById('btnRestoreP醬').classList.add('hidden');
+    }
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
@@ -1004,11 +1033,10 @@
     }
 
     function openTodoListModal() {
-      switchTodoTab('pending'); // 預設開在「待處理」分頁
+      switchTodoTab('pending');
       toggleModal('todoListModal', true);
     }
 
-    // 切換待辦事項子分頁（待處理 vs 已完成）
     function switchTodoTab(tab) {
       currentTodoTab = tab;
       var btnPending = document.getElementById("btnTodoPendingTab");
@@ -1025,7 +1053,6 @@
       renderTodoList();
     }
 
-    // 渲染待辦追蹤清單（依子頁籤獨立分類顯示）
     function renderTodoList() {
       var tbody = document.getElementById("todoTableBody");
       tbody.innerHTML = "";
@@ -1038,7 +1065,6 @@
             if (n.indexOf("📌") !== -1) {
               var isDone = n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1;
               
-              // 依據目前子頁籤過濾
               if ((currentTodoTab === 'pending' && !isDone) || (currentTodoTab === 'completed' && isDone)) {
                 pendingTodos.push({
                   order: o,
