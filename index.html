@@ -340,16 +340,27 @@
     </div>
   </div>
 
-  <!-- 📌 全域待辦追蹤清單 Modal -->
+  <!-- 📌 全域待辦追蹤清單 Modal (含待處理/已完成子頁籤) -->
   <div id="todoListModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-3 sm:mb-4 border-b pb-2 sm:pb-3">
+      <div class="flex justify-between items-center mb-3 sm:mb-4 border-b pb-2 sm:pb-3 flex-wrap gap-2">
         <div>
           <h2 class="text-base sm:text-xl font-bold text-[#662E8D] flex items-center gap-1 sm:gap-2">
             <span>📌</span> 售後與服務待辦追蹤事項清單
           </h2>
-          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">即時列出所有勾選需要追蹤之備註，可直接在此勾選完成</p>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">即時列出需要追蹤之備註，可直接在此勾選結案</p>
         </div>
+        
+        <!-- 待辦事項子頁籤切換按鈕 -->
+        <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs gap-1">
+          <button id="btnTodoPendingTab" onclick="switchTodoTab('pending')" class="px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
+            ⌛ 待處理
+          </button>
+          <button id="btnTodoCompletedTab" onclick="switchTodoTab('completed')" class="px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer">
+            ✅ 已完成
+          </button>
+        </div>
+
         <button onclick="toggleModal('todoListModal', false)" class="text-slate-400 hover:text-slate-600 font-bold text-lg sm:text-xl px-2 cursor-pointer">✕</button>
       </div>
 
@@ -365,7 +376,7 @@
             </tr>
           </thead>
           <tbody id="todoTableBody">
-            <tr><td colspan="5" class="p-6 text-center text-slate-400">目前尚無需要追蹤的待辦事項 🎉</td></tr>
+            <tr><td colspan="5" class="p-6 text-center text-slate-400">目前尚無待辦事項 🎉</td></tr>
           </tbody>
         </table>
       </div>
@@ -696,12 +707,15 @@
   <script>
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
-    var NOTE_DELIMITER = "|||"; // 同步後端分隔符號
+    var NOTE_DELIMITER = "|||";
     var orders = [];
     var chartInstances = {};
     var currentChartTimeRange = 'all';
     var shipDateSortState = 'default';
     var currentIssueTimeRange = 'month';
+
+    // 待辦事項頁籤狀態：'pending' | 'completed'
+    var currentTodoTab = 'pending';
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
@@ -859,7 +873,6 @@
       return clean.split('/')[0].split(' ')[0].trim() || "未指定型號";
     }
 
-    // 智能解析備註
     function parseNotesHistory(rawNotesStr) {
       if (!rawNotesStr) return [];
       var str = String(rawNotesStr).trim();
@@ -991,10 +1004,28 @@
     }
 
     function openTodoListModal() {
-      renderTodoList();
+      switchTodoTab('pending'); // 預設開在「待處理」分頁
       toggleModal('todoListModal', true);
     }
 
+    // 切換待辦事項子分頁（待處理 vs 已完成）
+    function switchTodoTab(tab) {
+      currentTodoTab = tab;
+      var btnPending = document.getElementById("btnTodoPendingTab");
+      var btnCompleted = document.getElementById("btnTodoCompletedTab");
+
+      if (tab === 'pending') {
+        btnPending.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnCompleted.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+      } else {
+        btnCompleted.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnPending.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+      }
+
+      renderTodoList();
+    }
+
+    // 渲染待辦追蹤清單（依子頁籤獨立分類顯示）
     function renderTodoList() {
       var tbody = document.getElementById("todoTableBody");
       tbody.innerHTML = "";
@@ -1006,19 +1037,24 @@
           o.notes.forEach(function(n, index) {
             if (n.indexOf("📌") !== -1) {
               var isDone = n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1;
-              pendingTodos.push({
-                order: o,
-                noteIndex: index,
-                noteText: n,
-                isDone: isDone
-              });
+              
+              // 依據目前子頁籤過濾
+              if ((currentTodoTab === 'pending' && !isDone) || (currentTodoTab === 'completed' && isDone)) {
+                pendingTodos.push({
+                  order: o,
+                  noteIndex: index,
+                  noteText: n,
+                  isDone: isDone
+                });
+              }
             }
           });
         }
       });
 
       if (pendingTodos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">目前尚無需要追蹤的待辦事項 🎉</td></tr>';
+        var emptyMsg = currentTodoTab === 'pending' ? "目前尚無待處理的追蹤事項 🎉" : "目前尚無已完成的追蹤紀錄";
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">' + emptyMsg + '</td></tr>';
         return;
       }
 
@@ -1074,7 +1110,6 @@
       }
     }
 
-    // 刪除單筆備註
     async function deleteNoteItem(orderId, noteIndex) {
       if (!confirm("確定要刪除這筆備註紀錄嗎？此動作無法復原。")) return;
 
@@ -1128,7 +1163,6 @@
       renderMonthlyIssues();
     }
 
-    // 彙整客戶問題
     function renderMonthlyIssues() {
       var tbody = document.getElementById("issuesTableBody");
       tbody.innerHTML = "";
