@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統 (功能全增強版)</title>
+  <title>AISO 聯盟一體機 - 訂單管理系統</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 引入 Chart.js 圖表庫 -->
@@ -125,17 +125,16 @@
           <button onclick="fetchOrdersFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-2.5 sm:px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 cursor-pointer shrink-0">
             <span id="refreshIcon">🔄</span> 重新整理
           </button>
-          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號..." class="border border-slate-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm w-full md:w-64 outline-none">
+          <input type="text" id="searchInput" oninput="renderOrders()" placeholder="搜尋客戶、業務、ERP、單號、出庫單..." class="border border-slate-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm w-full md:w-64 outline-none">
         </div>
       </div>
 
-      <!-- 訂單列表表格 (含固定標頭 & 出貨日排序) -->
+      <!-- 訂單列表表格 -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 sticky-table-container">
         <table class="w-full text-left border-collapse min-w-[1200px] sm:min-w-[1600px]">
           <thead class="sticky-table-header text-xs sm:text-sm">
             <tr>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">單號/客戶/ERP</th>
-              <!-- 出貨日排序按鈕 -->
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">
                 <button onclick="toggleShipDateSort()" class="flex items-center gap-1 hover:text-[#662E8D] transition cursor-pointer">
                   <span>預計出貨日</span>
@@ -143,13 +142,13 @@
                 </button>
               </th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">硬體資訊與保固</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">軟體資訊與保固</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">軟體資訊與 Key</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">金額與付款餘額</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">物流資訊</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">付款狀態</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">發票狀態</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">訂單狀態</th>
-              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">備註記錄 (含追蹤/問題)</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700 w-72">備註記錄 (含追蹤/問題)</th>
               <th class="p-2.5 sm:p-3 font-semibold text-slate-700">操作</th>
             </tr>
           </thead>
@@ -234,7 +233,7 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 3: 客戶問題與客訴彙總 (支援時間篩選與勾選完成) ==================== -->
+    <!-- ==================== 頁籤 3: 客戶問題與客訴彙總 ==================== -->
     <section id="sectionIssues" class="hidden space-y-4 sm:space-y-6">
       <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center flex-wrap gap-3">
@@ -510,7 +509,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block font-medium mb-1">負責業務</label>
             <input type="text" id="salesName" required class="w-full border rounded-lg p-2">
@@ -518,6 +517,10 @@
           <div>
             <label class="block font-medium mb-1">ERP 單號 (選填)</label>
             <input type="text" id="erpId" placeholder="例如：ERP-20240901" class="w-full border rounded-lg p-2">
+          </div>
+          <div>
+            <label class="block font-medium mb-1 text-[#662E8D]">出庫單流程編號 (選填)</label>
+            <input type="text" id="outboundNo" placeholder="例如：OUT-20260901" class="w-full border rounded-lg p-2 font-mono">
           </div>
         </div>
 
@@ -539,8 +542,14 @@
           </div>
           <div>
             <label class="block font-medium mb-1">軟體資訊 (版本/授權)</label>
-            <textarea id="swInfo" rows="2" placeholder="例：AISO OS v3.1" required class="w-full border rounded-lg p-2"></textarea>
+            <textarea id="swInfo" rows="2" placeholder="例：Orient AI 2.0" required class="w-full border rounded-lg p-2"></textarea>
           </div>
+        </div>
+
+        <!-- 軟體 License Key 欄位 -->
+        <div>
+          <label class="block font-medium mb-1 text-amber-800">軟體 License Key (選填)</label>
+          <input type="text" id="licenseKey" placeholder="例：AAAA-BBBB-CCCC-DDDD" class="w-full border border-amber-300 rounded-lg p-2 font-mono bg-amber-50/20">
         </div>
 
         <!-- 保固區塊 -->
@@ -687,14 +696,11 @@
   <script>
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
+    var NOTE_DELIMITER = "|||"; // 同步後端分隔符號
     var orders = [];
     var chartInstances = {};
     var currentChartTimeRange = 'all';
-    
-    // 出貨日排序狀態：'default' | 'asc' (最近->最遠) | 'desc' (最遠->最近)
     var shipDateSortState = 'default';
-
-    // 客戶問題時間篩選狀態：'month' | '3m' | 'all' | 'custom'
     var currentIssueTimeRange = 'month';
 
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
@@ -770,7 +776,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 預計出貨日雙向排序切換
     function toggleShipDateSort() {
       var sortIcon = document.getElementById("shipDateSortIcon");
       if (shipDateSortState === 'default' || shipDateSortState === 'desc') {
@@ -783,7 +788,6 @@
       renderOrders();
     }
 
-    // 動態多筆附件管理 DOM
     function addAttachmentRow(name, url) {
       var container = document.getElementById("attachmentsContainer");
       var div = document.createElement("div");
@@ -855,6 +859,19 @@
       return clean.split('/')[0].split(' ')[0].trim() || "未指定型號";
     }
 
+    // 智能解析備註
+    function parseNotesHistory(rawNotesStr) {
+      if (!rawNotesStr) return [];
+      var str = String(rawNotesStr).trim();
+      if (!str) return [];
+
+      if (str.indexOf(NOTE_DELIMITER) !== -1) {
+        return str.split(NOTE_DELIMITER).map(s => s.trim()).filter(s => s !== "");
+      }
+
+      return str.split("\n").map(s => s.trim()).filter(s => s !== "");
+    }
+
     window.handleSheetData = function(data) {
       var refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
@@ -881,7 +898,6 @@
             return str.indexOf("T") !== -1 ? str.split("T")[0] : str;
           };
 
-          // 解析多筆 JSON 格式附件 (若相容舊版單一連結)
           var rawFileUrl = String(item["J"] || item["檔案連結"] || "");
           var parsedAttachments = [];
           if (rawFileUrl) {
@@ -908,7 +924,7 @@
             status: String(item["I"] || item["訂單狀態"] || "待處理"),
             fileUrl: rawFileUrl,
             attachments: parsedAttachments,
-            notes: (item["K"] || item["備註歷史"]) ? String(item["K"] || item["備註歷史"]).split("\n") : [],
+            notes: parseNotesHistory(item["K"] || item["備註歷史"]),
             shipDate: formattedShipDate || "-",
             erpId: String(item["M"] || item["ERP編號"] || ""),
             deposit: parseFloat(item["N"] || item["已付訂金金額"] || 0) || 0,
@@ -919,7 +935,9 @@
             swWarrantStart: formatDate(item["S"] || item["軟體保固開始"]),
             swWarrantEnd: formatDate(item["T"] || item["軟體保固結束"]),
             warrantyContact: String(item["U"] || item["保固對接窗口"] || ""),
-            warrantyNote: String(item["V"] || item["保固注意事項"] || "")
+            warrantyNote: String(item["V"] || item["保固注意事項"] || ""),
+            outboundNo: String(item["W"] || item["出庫單流程編號"] || ""),
+            licenseKey: String(item["X"] || item["軟體 License Key"] || "")
           };
         }).filter(function(o) {
           return o.orderId && o.orderId !== "訂單編號" && o.orderId !== ".";
@@ -1007,13 +1025,13 @@
       pendingTodos.forEach(function(todo) {
         var o = todo.order;
         var tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50/30 text-xs " + (todo.isDone ? "bg-slate-50 opacity-60" : "");
+        tr.className = "border-b hover:bg-purple-50/30 text-xs " + (todo.isDone ? "bg-slate-50 opacity-80" : "");
 
         var cleanText = todo.noteText.replace("📌 [待追蹤]", "").replace("📌 [已完成]", "").replace("✅", "").trim();
         var chkHtml = '<input type="checkbox" ' + (todo.isDone ? 'checked' : '') + ' onchange="toggleTodoStatus(\'' + o.orderId + '\', ' + todo.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
-        var textStyle = todo.isDone ? "line-through text-slate-400" : "font-semibold text-slate-800";
+        var textStyle = "font-semibold text-slate-800 whitespace-pre-wrap";
         var statusBadge = todo.isDone 
-          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已處理</span>'
+          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已處理 ✅</span>'
           : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold animate-pulse">待處理</span>';
 
         tr.innerHTML = 
@@ -1050,13 +1068,36 @@
           body: JSON.stringify({
             action: "update",
             orderId: orderId,
-            note: order.notes.join("\n")
+            note: order.notes.join(NOTE_DELIMITER)
           })
         });
       }
     }
 
-    // 切換客戶問題時間篩選
+    // 刪除單筆備註
+    async function deleteNoteItem(orderId, noteIndex) {
+      if (!confirm("確定要刪除這筆備註紀錄嗎？此動作無法復原。")) return;
+
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
+        order.notes.splice(noteIndex, 1);
+
+        renderOrders();
+        renderMonthlyIssues();
+        renderTodoList();
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join(NOTE_DELIMITER)
+          })
+        });
+      }
+    }
+
     function setIssueTimeRange(range) {
       currentIssueTimeRange = range;
       var btns = ['month', '3m', 'all'];
@@ -1087,14 +1128,14 @@
       renderMonthlyIssues();
     }
 
-    // 彙整客戶問題（支援時間篩選與打勾已解決切換）
+    // 彙整客戶問題
     function renderMonthlyIssues() {
       var tbody = document.getElementById("issuesTableBody");
       tbody.innerHTML = "";
 
       var now = new Date();
       var currentYear = now.getFullYear();
-      var currentMonth = now.getMonth() + 1; // 1-12
+      var currentMonth = now.getMonth() + 1;
 
       var startDate = null;
       var endDate = null;
@@ -1120,7 +1161,6 @@
         if (Array.isArray(o.notes)) {
           o.notes.forEach(function(n, index) {
             if (n.indexOf("⚠️ [客戶問題]") !== -1 || n.indexOf("✅ [已解決]") !== -1) {
-              // 抓取日期
               var dateMatch = n.match(/\[(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}|\d{1,2}[\/-]\d{1,2})\]/);
               var noteDateStr = dateMatch ? dateMatch[1] : "";
               var inRange = true;
@@ -1167,13 +1207,13 @@
 
       issueList.forEach(function(issue) {
         var tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50/20 text-xs sm:text-sm " + (issue.isSolved ? "bg-slate-50/60 opacity-60" : "");
+        tr.className = "border-b hover:bg-purple-50/20 text-xs sm:text-sm " + (issue.isSolved ? "bg-slate-50/80" : "");
 
         var chkHtml = '<input type="checkbox" ' + (issue.isSolved ? 'checked' : '') + ' onchange="toggleIssueSolvedStatus(\'' + issue.orderId + '\', ' + issue.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
 
         var textStyle = issue.isSolved 
-          ? "line-through text-slate-400 bg-slate-100 p-2 rounded" 
-          : "text-rose-700 bg-rose-50/80 p-2 rounded font-medium border border-rose-100";
+          ? "text-slate-700 bg-slate-100 p-2 rounded font-normal whitespace-pre-wrap" 
+          : "text-rose-700 bg-rose-50/80 p-2 rounded font-medium border border-rose-100 whitespace-pre-wrap";
 
         var statusBadge = issue.isSolved 
           ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已解決 ✅</span>' 
@@ -1192,7 +1232,6 @@
       });
     }
 
-    // 勾選/取消問題解決狀態並同步寫回試算表
     async function toggleIssueSolvedStatus(orderId, noteIndex, isSolved) {
       var order = orders.find(function(o) { return o.orderId === orderId; });
       if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
@@ -1216,7 +1255,7 @@
           body: JSON.stringify({
             action: "update",
             orderId: orderId,
-            note: order.notes.join("\n")
+            note: order.notes.join(NOTE_DELIMITER)
           })
         });
       }
@@ -1384,7 +1423,6 @@
       var secAnalytics = document.getElementById("sectionAnalytics");
       var secIssues = document.getElementById("sectionIssues");
 
-      // 重設所有按鈕樣式
       [btnOrders, btnAnalytics, btnIssues].forEach(b => {
         b.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
       });
@@ -1429,7 +1467,7 @@
     function openOrderModal(orderId) {
       document.getElementById("orderForm").reset();
       document.getElementById("editOrderId").value = "";
-      document.getElementById("attachmentsContainer").innerHTML = ""; // 清空附件
+      document.getElementById("attachmentsContainer").innerHTML = "";
       
       var defaultToday = new Date().toISOString().split('T')[0];
       document.getElementById("shipDate").value = defaultToday;
@@ -1446,9 +1484,11 @@
         document.getElementById("custName").value = o.customer;
         document.getElementById("salesName").value = o.sales;
         document.getElementById("erpId").value = o.erpId || "";
+        document.getElementById("outboundNo").value = o.outboundNo || "";
         document.getElementById("shipDate").value = o.shipDate !== "-" ? o.shipDate : defaultToday;
         document.getElementById("hwInfo").value = o.hardware;
         document.getElementById("swInfo").value = o.software;
+        document.getElementById("licenseKey").value = o.licenseKey || "";
 
         document.getElementById("hwWarrantStart").value = o.hwWarrantStart || "";
         document.getElementById("hwWarrantEnd").value = o.hwWarrantEnd || "";
@@ -1466,7 +1506,6 @@
         document.getElementById("logisticsNo").value = o.logisticsNo || "";
         document.getElementById("initialNoteBox").classList.add("hidden");
 
-        // 載入多筆附件
         if (Array.isArray(o.attachments) && o.attachments.length > 0) {
           o.attachments.forEach(function(att) {
             addAttachmentRow(att.name, att.url);
@@ -1479,7 +1518,12 @@
         document.getElementById("modalTitle").innerText = "建立 AISO 一體機新訂單";
         document.getElementById("customOrderId").disabled = false;
         document.getElementById("initialNoteBox").classList.remove("hidden");
-        addAttachmentRow("", ""); // 預設提供一列附件輸入
+        
+        document.getElementById("swInfo").value = "Orient AI 2.0";
+        document.getElementById("outboundNo").value = "";
+        document.getElementById("licenseKey").value = "";
+
+        addAttachmentRow("", "");
         autoGenerateDNCode();
       }
 
@@ -1503,20 +1547,19 @@
         return;
       }
 
-      // 1. 篩選
       var filtered = orders.filter(function(o) {
         var matchSt = filterSt === "ALL" || o.status === filterSt;
         var matchInv = filterInv === "ALL" || o.invoiceStatus === filterInv;
         var matchSearch = String(o.customer).toLowerCase().indexOf(search) !== -1 || 
                             String(o.sales).toLowerCase().indexOf(search) !== -1 || 
                             String(o.erpId).toLowerCase().indexOf(search) !== -1 || 
+                            String(o.outboundNo).toLowerCase().indexOf(search) !== -1 ||
                             String(o.warrantyContact).toLowerCase().indexOf(search) !== -1 || 
                             String(o.logisticsNo).toLowerCase().indexOf(search) !== -1 ||
                             String(o.orderId).toLowerCase().indexOf(search) !== -1;
         return matchSt && matchInv && matchSearch;
       });
 
-      // 2. 出貨日排序機制
       if (shipDateSortState !== 'default') {
         filtered.sort(function(a, b) {
           var dateA = a.shipDate && a.shipDate !== '-' ? new Date(a.shipDate.replace(/\//g, "-")) : new Date(0);
@@ -1531,20 +1574,22 @@
         
         var notesHtml = '<div class="text-xs text-slate-400">-</div>';
         if (Array.isArray(o.notes) && o.notes.length > 0) {
-          notesHtml = o.notes.map(function(n) {
+          notesHtml = o.notes.map(function(n, index) {
+            var delBtn = '<button onclick="deleteNoteItem(\'' + o.orderId + '\', ' + index + ')" class="text-slate-400 hover:text-rose-600 font-bold ml-1 px-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" title="刪除此筆備註">✕</button>';
+
             if (n.indexOf("📌") !== -1) {
               if (n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1) {
-                return '<div class="text-xs text-slate-400 bg-slate-100 p-1.5 rounded mb-1 line-through">✅ ' + n.replace("📌 [已完成] ✅", "").trim() + '</div>';
+                return '<div class="group relative text-xs text-slate-700 bg-slate-100 p-1.5 rounded mb-1.5 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">✅ ' + n.replace("📌 [已完成] ✅", "").trim() + '</div>' + delBtn + '</div>';
               } else {
                 totalPendingTodos++;
-                return '<div class="text-xs font-bold text-[#662E8D] bg-purple-50 p-1.5 rounded mb-1 border border-purple-200">📌 [待追蹤] ' + n.replace("📌 [待追蹤]", "").trim() + '</div>';
+                return '<div class="group relative text-xs font-bold text-[#662E8D] bg-purple-50 p-1.5 rounded mb-1.5 border border-purple-200 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">📌 [待追蹤] ' + n.replace("📌 [待追蹤]", "").trim() + '</div>' + delBtn + '</div>';
               }
             } else if (n.indexOf("⚠️ [客戶問題]") !== -1) {
-              return '<div class="text-xs font-bold text-rose-700 bg-rose-50 p-1.5 rounded mb-1 border border-rose-200">⚠️ [客戶問題] ' + n.replace("⚠️ [客戶問題]", "").trim() + '</div>';
+              return '<div class="group relative text-xs font-bold text-rose-700 bg-rose-50 p-1.5 rounded mb-1.5 border border-rose-200 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">⚠️ [客戶問題] ' + n.replace("⚠️ [客戶問題]", "").trim() + '</div>' + delBtn + '</div>';
             } else if (n.indexOf("✅ [已解決]") !== -1) {
-              return '<div class="text-xs text-slate-400 bg-slate-100 p-1.5 rounded mb-1 line-through">✅ [已解決] ' + n.replace("✅ [已解決]", "").replace("✅", "").trim() + '</div>';
+              return '<div class="group relative text-xs text-slate-700 bg-slate-100 p-1.5 rounded mb-1.5 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">✅ [已解決] ' + n.replace("✅ [已解決]", "").replace("✅", "").trim() + '</div>' + delBtn + '</div>';
             }
-            return '<div class="text-xs text-slate-600 bg-slate-100 p-1 rounded mb-1">' + n + '</div>';
+            return '<div class="group relative text-xs text-slate-600 bg-slate-100 p-1.5 rounded mb-1.5 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">' + n + '</div>' + delBtn + '</div>';
           }).join('');
         }
 
@@ -1559,9 +1604,13 @@
         }).join('');
 
         var erpBadgeHtml = o.erpId ? '<div class="text-xs font-mono text-[#662E8D] bg-purple-50 inline-block px-1 rounded mt-1">ERP: ' + o.erpId + '</div>' : '';
+        var outboundBadgeHtml = o.outboundNo ? '<div class="text-[11px] font-mono text-blue-700 bg-blue-50 inline-block px-1 rounded mt-1">出庫單: ' + o.outboundNo + '</div>' : '';
+
         var hwWarrantyHtml = (o.hwWarrantStart || o.hwWarrantEnd) 
           ? '<div class="text-[11px] text-amber-700 bg-amber-50 p-1 rounded mt-1">🛡 保固: ' + (o.hwWarrantStart || '?') + ' ~ ' + (o.hwWarrantEnd || '?') + '</div>'
           : '<div class="text-slate-400 text-[11px]">無保固紀錄</div>';
+
+        var licenseKeyBadgeHtml = o.licenseKey ? '<div class="text-[11px] font-mono text-amber-800 bg-amber-50 p-1 rounded mt-1 truncate max-w-[160px]" title="' + o.licenseKey + '">🔑 Key: ' + o.licenseKey + '</div>' : '';
 
         var swWarrantyHtml = (o.swWarrantStart || o.swWarrantEnd)
           ? '<div class="text-[11px] text-[#662E8D] bg-purple-50 p-1 rounded mt-1">🛡️ 保固: ' + (o.swWarrantStart || '?') + ' ~ ' + (o.swWarrantEnd || '?') + '</div>'
@@ -1590,7 +1639,6 @@
           ? '<div class="font-medium text-slate-700">' + (o.logisticsCompany || '物流') + '</div>' + logisticsNosHtml
           : '<span class="text-slate-300">-</span>';
 
-        // 渲染多筆自訂名稱附件按鈕
         var fileLinksHtml = '<span class="text-slate-300 text-xs">-</span>';
         if (Array.isArray(o.attachments) && o.attachments.length > 0) {
           fileLinksHtml = o.attachments.map(function(att) {
@@ -1607,6 +1655,7 @@
             '<div class="font-medium text-slate-800">' + (o.customer || '-') + '</div>' +
             '<div class="text-xs text-slate-400">業務: ' + (o.sales || '-') + '</div>' +
             erpBadgeHtml +
+            (outboundBadgeHtml ? '<br>' + outboundBadgeHtml : '') +
           '</td>' +
           '<td class="p-2.5 sm:p-3">' +
             '<span class="inline-block bg-slate-100 px-2 py-1 rounded text-xs font-mono font-medium text-slate-700">📅 ' + o.shipDate + '</span>' +
@@ -1617,6 +1666,7 @@
           '</td>' +
           '<td class="p-2.5 sm:p-3 text-xs">' +
             '<div class="font-medium text-slate-800 truncate max-w-[160px]" title="' + o.software + '">' + (o.software || '-') + '</div>' +
+            licenseKeyBadgeHtml +
             swWarrantyHtml +
           '</td>' +
           '<td class="p-2.5 sm:p-3">' +
@@ -1640,7 +1690,7 @@
               statusOptionsHtml +
             '</select>' +
           '</td>' +
-          '<td class="p-2.5 sm:p-3 max-w-[200px]">' + notesHtml + '</td>' +
+          '<td class="p-2.5 sm:p-3 max-w-[280px]">' + notesHtml + '</td>' +
           '<td class="p-2.5 sm:p-3">' +
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
@@ -1670,7 +1720,6 @@
       var initialNoteText = document.getElementById("initialNote").value;
       var dateStr = new Date().toLocaleDateString();
 
-      // 取得多筆附件資料 JSON 字串
       var attachmentsList = getAttachmentsData();
       var fileUrlJson = JSON.stringify(attachmentsList);
 
@@ -1680,9 +1729,11 @@
         customer: document.getElementById("custName").value,
         sales: document.getElementById("salesName").value,
         erpId: document.getElementById("erpId").value,
+        outboundNo: document.getElementById("outboundNo").value,
         shipDate: document.getElementById("shipDate").value,
         hardware: document.getElementById("hwInfo").value,
         software: document.getElementById("swInfo").value,
+        licenseKey: document.getElementById("licenseKey").value,
 
         hwWarrantStart: document.getElementById("hwWarrantStart").value,
         hwWarrantEnd: document.getElementById("hwWarrantEnd").value,
@@ -1768,7 +1819,7 @@
           body: JSON.stringify({
             action: "update",
             orderId: orderId,
-            note: order.notes.join("\n")
+            note: order.notes.join(NOTE_DELIMITER)
           })
         });
 
@@ -1824,7 +1875,7 @@
       var btns = ['1m', '3m', '6m', '1y', 'all'];
       btns.forEach(function(b) {
         var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
-        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
+        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
       });
       currentChartTimeRange = 'custom';
       safeRenderCharts();
