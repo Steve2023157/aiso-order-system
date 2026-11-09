@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AISO 聯盟一體機 - 訂單管理系統</title>
+  <title>AISO 聯盟一體機 - 訂單與 POC 測試機管理系統</title>
   <!-- 引入 Tailwind CSS 快速美化 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 引入 Chart.js 圖表庫 -->
@@ -54,16 +54,19 @@
           <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理系統</h1>
         </div>
         
-        <!-- 主頁面頁籤切換 -->
+        <!-- 主頁面頁籤切換 (含新增的 POC 測試機分頁) -->
         <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm flex-wrap gap-1">
           <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             📋 訂單列表
+          </button>
+          <button id="tabBtnPoc" onclick="switchMainTab('poc')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer flex items-center gap-1">
+            <span>🧪</span> POC 借測追蹤
           </button>
           <button id="tabBtnAnalytics" onclick="switchMainTab('analytics')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer">
             📊 數據圖表
           </button>
           <button id="tabBtnIssues" onclick="switchMainTab('issues')" class="px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer flex items-center gap-1">
-            <span>❓</span> 客戶問題與客訴彙總
+            <span>❓</span> 客戶問題彙總
           </button>
         </nav>
       </div>
@@ -77,7 +80,8 @@
         <button onclick="openShipmentTrackerModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg font-medium shadow-sm transition cursor-pointer flex items-center gap-1">
           <span>🚚</span> 出貨預警
         </button>
-        <button onclick="openOrderModal(null)" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium shadow-sm transition cursor-pointer">
+        <!-- 動態依頁面切換的新增按鈕 -->
+        <button id="btnMainAdd" onclick="handleMainAddAction()" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium shadow-sm transition cursor-pointer">
           + 新增訂單
         </button>
       </div>
@@ -159,7 +163,87 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 2: 數據統計圖表 ==================== -->
+    <!-- ==================== 頁籤 2: 🧪 POC 借測追蹤 (新功能) ==================== -->
+    <section id="sectionPoc" class="hidden space-y-4 sm:space-y-6">
+      <!-- POC KPI 統計面板 -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] sm:text-xs font-semibold text-slate-500">🧪 借測總數 (含歷史)</div>
+            <div id="pocKpiTotal" class="text-xl sm:text-2xl font-black text-[#662E8D] mt-0.5">0 台</div>
+          </div>
+          <span class="text-2xl">📦</span>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 p-3.5 sm:p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="text-[11px] sm:text-xs font-semibold text-blue-800">🏢 目前於客戶端測試中</div>
+            <div id="pocKpiActive" class="text-xl sm:text-2xl font-black text-blue-600 mt-0.5">0 台</div>
+          </div>
+          <span class="text-2xl">🖥️</span>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 p-3.5 sm:p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="text-[11px] sm:text-xs font-semibold text-amber-800">⏰ 未來 7 天即將到期</div>
+            <div id="pocKpiExpiring" class="text-xl sm:text-2xl font-black text-amber-600 mt-0.5">0 台</div>
+          </div>
+          <span class="text-2xl">⏳</span>
+        </div>
+        <div class="bg-rose-50 border border-rose-200 p-3.5 sm:p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <div class="text-[11px] sm:text-xs font-semibold text-rose-800">🚨 借測逾期未歸還</div>
+            <div id="pocKpiOverdue" class="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">0 台</div>
+          </div>
+          <span class="text-2xl">⚠️</span>
+        </div>
+      </div>
+
+      <!-- POC 篩選與搜尋列 -->
+      <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3 sm:gap-4 items-stretch md:items-center justify-between border border-slate-100">
+        <div class="flex flex-wrap gap-2 sm:gap-4 items-center">
+          <div class="flex items-center gap-1 text-xs sm:text-sm">
+            <label class="font-semibold text-slate-600">借測狀態：</label>
+            <select id="filterPocStatus" onchange="renderPocList()" class="border border-slate-300 rounded-lg p-1 sm:p-1.5 outline-none bg-white">
+              <option value="ALL">全部狀態</option>
+              <option value="待出庫">待出庫</option>
+              <option value="測試中">測試中 (客戶端)</option>
+              <option value="申請延長中">申請延長中</option>
+              <option value="已歸還">已歸還 (入庫)</option>
+              <option value="轉正式訂單">轉正式訂單 🎉</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2 text-xs sm:text-sm">
+          <button onclick="fetchPocFromSheet()" class="bg-slate-100 hover:bg-slate-200 border px-2.5 sm:px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 cursor-pointer shrink-0">
+            <span id="pocRefreshIcon">🔄</span> 重新整理
+          </button>
+          <input type="text" id="pocSearchInput" oninput="renderPocList()" placeholder="搜尋 POC單號、客戶、業務、機型、序號..." class="border border-slate-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm w-full md:w-64 outline-none">
+        </div>
+      </div>
+
+      <!-- POC 表格清單 -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100 sticky-table-container">
+        <table class="w-full text-left border-collapse min-w-[1200px]">
+          <thead class="sticky-table-header text-xs sm:text-sm">
+            <tr>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">POC 編號 / 客戶</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">負責業務 / 技術窗口</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">借測機器規格與序號 (S/N)</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">借測期程 (出借~結束)</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">設備目前位置</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">目前借測狀態</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700 w-64">備註歷程</th>
+              <th class="p-2.5 sm:p-3 font-semibold text-slate-700">操作</th>
+            </tr>
+          </thead>
+          <tbody id="pocTableBody" class="text-xs sm:text-sm">
+            <tr><td colspan="8" class="p-8 text-center text-slate-400">正在從雲端載入 POC 資料中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== 頁籤 3: 數據統計圖表 ==================== -->
     <section id="sectionAnalytics" class="hidden space-y-4 sm:space-y-6">
       <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm space-y-3 sm:space-y-4 border border-slate-100">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -233,7 +317,7 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 3: 客戶問題與客訴彙總 ==================== -->
+    <!-- ==================== 頁籤 4: 客戶問題與客訴彙總 ==================== -->
     <section id="sectionIssues" class="hidden space-y-4 sm:space-y-6">
       <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-100 space-y-3">
         <div class="flex justify-between items-center flex-wrap gap-3">
@@ -300,27 +384,21 @@
   </button>
 
   <!-- 🐶 P醬 AI 智慧助理 (放大 + 可收起/叫出功能) -->
-  <!-- 1. 當 P醬 被收起時顯示的重新喚醒按鈕 (預設隱藏) -->
   <button id="btnRestoreP醬" onclick="restoreP醬()" class="hidden fixed bottom-6 right-6 z-50 bg-[#662E8D] hover:bg-[#522373] text-white px-3.5 py-2 rounded-full shadow-2xl font-bold text-xs flex items-center gap-1.5 transition-all duration-300 cursor-pointer border border-purple-300">
     <span>✨</span> 叫出 P醬
   </button>
 
-  <!-- 2. P醬 主懸浮按鈕容器 -->
   <div id="aiAgentContainer" class="fixed bottom-4 sm:bottom-6 right-4 sm:right-12 z-50 flex flex-col items-end transition-all duration-300">
-    <!-- P醬 角色區塊 (尺寸大幅放大至 w-20 h-20 ~ w-24 h-24) -->
     <div class="group relative flex flex-col items-center">
-      <!-- 氣泡與收起按鈕 -->
       <div class="flex items-center gap-1 mb-1">
         <span class="bg-[#662E8D] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md border border-purple-300/40 flex items-center gap-1 group-hover:bg-[#522373] transition-colors">
           <span>✨</span> P醬
         </span>
-        <!-- 收起 P醬 按鈕 -->
         <button onclick="hideP醬()" class="bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow transition-all cursor-pointer" title="暫時收起 P醬">
           ✕
         </button>
       </div>
 
-      <!-- 點擊 P醬 圖片開啟/關閉對話視窗 -->
       <button onclick="toggleAiPanel()" class="p-0 border-0 bg-transparent cursor-pointer outline-none transition-transform duration-300 hover:scale-110 p-醬-float">
         <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" 
              alt="P醬" 
@@ -328,13 +406,12 @@
       </button>
     </div>
 
-    <!-- 對話彈窗視窗 -->
     <div id="aiPanel" class="hidden fixed sm:absolute inset-x-2 bottom-24 sm:inset-auto sm:bottom-28 sm:right-0 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 h-[70vh] sm:h-[480px]">
       <div class="bg-[#662E8D] text-white p-3 sm:p-3.5 flex justify-between items-center">
         <div class="flex items-center gap-2">
           <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow">
           <div>
-            <h3 class="font-bold text-xs sm:text-sm">P醬 (AISO 訂單 AI Agent)</h3>
+            <h3 class="font-bold text-xs sm:text-sm">P醬 (AISO 訂單 & POC AI Agent)</h3>
             <p class="text-[9px] sm:text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
           </div>
         </div>
@@ -345,9 +422,9 @@
         <div class="bg-white border p-3 rounded-xl shadow-sm text-slate-700">
           👋 你好！我是 P醬。你可以直接問我：
           <ul class="list-disc pl-4 mt-1.5 space-y-1 text-slate-500 font-medium">
-            <li>「幫我算李家宜這個月的總業績」</li>
-            <li>「哪些訂單目前處於逾期狀態？」</li>
-            <li>「整理麗高營造訂購的所有設備」</li>
+            <li>「目前有哪些廠商正在進行 POC 借測？」</li>
+            <li>「哪幾台 POC 測試機快要到期了？」</li>
+            <li>「幫我算李家宜這個月的正式訂單業績」</li>
           </ul>
         </div>
       </div>
@@ -370,7 +447,6 @@
           <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">即時列出需要追蹤之備註，可直接在此勾選結案</p>
         </div>
         
-        <!-- 待辦事項子頁籤切換按鈕 -->
         <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs gap-1">
           <button id="btnTodoPendingTab" onclick="switchTodoTab('pending')" class="px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             ⌛ 待處理
@@ -517,7 +593,7 @@
     </div>
   </div>
 
-  <!-- 建立 / 編輯訂單 Modal -->
+  <!-- 建立 / 編輯正式訂單 Modal -->
   <div id="orderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <h2 id="modalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 AISO 一體機新訂單</h2>
@@ -560,9 +636,7 @@
             <label class="font-bold text-blue-900 flex items-center gap-1">📎 檔案附件與目錄 (可新增多筆並自訂名稱)</label>
             <button type="button" onclick="addAttachmentRow('', '')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-xs font-bold cursor-pointer">+ 新增附件</button>
           </div>
-          <div id="attachmentsContainer" class="space-y-2">
-            <!-- 動態插入附件輸入列 -->
-          </div>
+          <div id="attachmentsContainer" class="space-y-2"></div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -576,7 +650,6 @@
           </div>
         </div>
 
-        <!-- 軟體 License Key 欄位 -->
         <div>
           <label class="block font-medium mb-1 text-amber-800">軟體 License Key (選填)</label>
           <input type="text" id="licenseKey" placeholder="例：AAAA-BBBB-CCCC-DDDD" class="w-full border border-amber-300 rounded-lg p-2 font-mono bg-amber-50/20">
@@ -617,7 +690,6 @@
           </div>
         </div>
 
-        <!-- 金額與付款條件欄位 -->
         <div class="bg-slate-50 p-3 rounded-lg border space-y-3">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -642,7 +714,6 @@
           </div>
         </div>
 
-        <!-- 物流欄位 -->
         <div class="bg-purple-50/40 p-3 rounded-lg border border-purple-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-medium mb-1 text-slate-700">物流公司 (選填)</label>
@@ -691,16 +762,108 @@
     </div>
   </div>
 
+  <!-- 🧪 建立 / 編輯 POC 測試機 Modal (新功能) -->
+  <div id="pocModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div class="bg-white rounded-xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <h2 id="pocModalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 POC 測試機借測紀錄</h2>
+      <form id="pocForm" onsubmit="submitPoc(event)" class="space-y-3 sm:space-y-4 text-xs sm:text-sm">
+        <input type="hidden" id="editPocId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1 text-[#662E8D]">POC 單號</label>
+            <input type="text" id="pocCode" placeholder="例：POC-20261109001" required class="w-full border border-purple-300 rounded-lg p-2 font-mono bg-purple-50/20 font-bold text-[#662E8D]">
+          </div>
+          <div>
+            <label class="block font-medium mb-1">客戶名稱 (借測廠商)</label>
+            <input type="text" id="pocCustomer" required class="w-full border rounded-lg p-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1">業務窗口</label>
+            <input type="text" id="pocSales" required class="w-full border rounded-lg p-2">
+          </div>
+          <div>
+            <label class="block font-medium mb-1">技術對接窗口 (工程師/電話)</label>
+            <input type="text" id="pocTechContact" placeholder="例：張工程師 0912-345678" class="w-full border rounded-lg p-2">
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-medium mb-1">借測機器機型</label>
+              <input type="text" id="pocHwModel" placeholder="例：AISO-Pro 一體機" required class="w-full border rounded-lg p-2 bg-white">
+            </div>
+            <div>
+              <label class="block font-medium mb-1 text-purple-700 font-bold">機器序號 (S/N)</label>
+              <input type="text" id="pocSn" placeholder="例：SN:883920" class="w-full border rounded-lg p-2 bg-white font-mono">
+            </div>
+            <div>
+              <label class="block font-medium mb-1">出庫單流程編號</label>
+              <input type="text" id="pocOutboundNo" placeholder="例：OUT-POC-001" class="w-full border rounded-lg p-2 bg-white font-mono">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-medium mb-1 text-slate-700">出借日期 (起始)</label>
+            <input type="date" id="pocStartDate" required class="w-full border rounded-lg p-2 bg-white">
+          </div>
+          <div>
+            <label class="block font-medium mb-1 text-amber-700 font-bold">預計結束日期</label>
+            <input type="date" id="pocEndDate" required class="w-full border border-amber-300 rounded-lg p-2 bg-amber-50/20 font-bold">
+          </div>
+          <div>
+            <label class="block font-medium mb-1 text-slate-700">實際歸還日期 (選填)</label>
+            <input type="date" id="pocReturnDate" class="w-full border rounded-lg p-2 bg-white">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium mb-1">目前借測狀態</label>
+            <select id="pocStatus" class="w-full border rounded-lg p-2 bg-white font-semibold">
+              <option value="待出庫">待出庫</option>
+              <option value="測試中">測試中 (客戶端)</option>
+              <option value="申請延長中">申請延長中</option>
+              <option value="已歸還">已歸還 (入庫)</option>
+              <option value="轉正式訂單">轉正式訂單 🎉</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium mb-1">設備目前位置</label>
+            <input type="text" id="pocLocation" placeholder="例：客戶現場 (台北辦公室) / 倉庫" required class="w-full border rounded-lg p-2">
+          </div>
+        </div>
+
+        <div id="pocInitialNoteBox">
+          <label class="block font-medium mb-1">初始備註 (測試項目/驗證指標)</label>
+          <input type="text" id="pocInitialNote" placeholder="例：需測試 Orient AI 2.0 離線辨識效果..." class="w-full border rounded-lg p-2">
+        </div>
+
+        <div class="flex justify-end gap-3 mt-4 sm:mt-6">
+          <button type="button" onclick="toggleModal('pocModal', false)" class="px-4 py-2 border rounded-lg hover:bg-slate-100 cursor-pointer">取消</button>
+          <button type="submit" id="pocSubmitBtn" class="px-4 py-2 bg-[#662E8D] text-white rounded-lg hover:bg-[#522373] cursor-pointer font-bold">儲存 POC 紀錄</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 📌 新增售後/備註 Modal -->
   <div id="noteModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-md w-full p-4 sm:p-6 shadow-2xl">
-      <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增售後與對接備註紀錄</h3>
+      <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增備註紀錄</h3>
       <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-3 sm:mb-4 font-bold"></p>
       <input type="hidden" id="currentOrderId">
+      <input type="hidden" id="currentNoteTargetType" value="order"> <!-- 'order' 或 'poc' -->
       
-      <textarea id="newNoteText" rows="3" placeholder="請輸入服務進度、備貨說明或客戶反應之問題..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
+      <textarea id="newNoteText" rows="3" placeholder="請輸入進度說明、測試反饋或注意事項..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
       
-      <div class="space-y-2 mb-4">
+      <div id="orderNoteTagsGroup" class="space-y-2 mb-4">
         <div class="flex items-center gap-2 bg-purple-50 p-2.5 rounded-lg border border-purple-200 cursor-pointer" onclick="document.getElementById('chkNeedTrack').click()">
           <input type="checkbox" id="chkNeedTrack" onclick="event.stopPropagation()" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 focus:ring-[#662E8D] cursor-pointer">
           <label for="chkNeedTrack" class="text-xs font-bold text-[#662E8D] cursor-pointer select-none">
@@ -726,26 +889,27 @@
   <script>
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
+    var POC_STATUS_OPTIONS = ["待出庫", "測試中", "申請延長中", "已歸還", "轉正式訂單"];
     var NOTE_DELIMITER = "|||";
+    
     var orders = [];
+    var pocList = [];
     var chartInstances = {};
     var currentChartTimeRange = 'all';
     var shipDateSortState = 'default';
     var currentIssueTimeRange = 'month';
     var currentTodoTab = 'pending';
+    var currentMainTab = 'orders';
 
-    // 收起 P醬
+    // 收起 / 叫出 P醬
     function hideP醬() {
       document.getElementById('aiAgentContainer').classList.add('hidden');
       document.getElementById('btnRestoreP醬').classList.remove('hidden');
     }
-
-    // 叫出 P醬
     function restoreP醬() {
       document.getElementById('aiAgentContainer').classList.remove('hidden');
       document.getElementById('btnRestoreP醬').classList.add('hidden');
     }
-
     function toggleAiPanel() { document.getElementById('aiPanel').classList.toggle('hidden'); }
 
     // 🐶 P醬 AI Agent 對話機制
@@ -815,9 +979,7 @@
       }
     };
 
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
     function toggleShipDateSort() {
       var sortIcon = document.getElementById("shipDateSortIcon");
@@ -858,35 +1020,41 @@
     function autoGenerateDNCode() {
       var editOrderId = document.getElementById("editOrderId").value;
       if (editOrderId) return;
-
       var dateVal = document.getElementById("shipDate").value;
       if (!dateVal) return;
-
-      var ymd = dateVal.replace(/-/g, "");
-      var prefix = "DN" + ymd;
+      var prefix = "DN" + dateVal.replace(/-/g, "");
 
       var maxSeq = 0;
       orders.forEach(function(o) {
         var id = String(o.orderId || "").trim();
         if (id.indexOf(prefix) === 0) {
-          var seqStr = id.substring(prefix.length);
-          var seqNum = parseInt(seqStr, 10);
-          if (!isNaN(seqNum) && seqNum > maxSeq) {
-            maxSeq = seqNum;
-          }
+          var seqNum = parseInt(id.substring(prefix.length), 10);
+          if (!isNaN(seqNum) && seqNum > maxSeq) maxSeq = seqNum;
         }
       });
+      document.getElementById("customOrderId").value = prefix + String(maxSeq + 1).padStart(3, '0');
+    }
 
-      var nextSeq = maxSeq + 1;
-      var seqPadded = String(nextSeq).padStart(3, '0');
+    function autoGeneratePocCode() {
+      var editPocId = document.getElementById("editPocId").value;
+      if (editPocId) return;
+      var dateVal = document.getElementById("pocStartDate").value || new Date().toISOString().split('T')[0];
+      var prefix = "POC-" + dateVal.replace(/-/g, "");
 
-      document.getElementById("customOrderId").value = prefix + seqPadded;
+      var maxSeq = 0;
+      pocList.forEach(function(p) {
+        var id = String(p.pocId || "").trim();
+        if (id.indexOf(prefix) === 0) {
+          var seqNum = parseInt(id.substring(prefix.length), 10);
+          if (!isNaN(seqNum) && seqNum > maxSeq) maxSeq = seqNum;
+        }
+      });
+      document.getElementById("pocCode").value = prefix + String(maxSeq + 1).padStart(3, '0');
     }
 
     function parseHardwareQty(hwStr) {
       if (!hwStr) return 1;
-      var str = String(hwStr);
-      var match = str.match(/[*xX]\s*(\d+)/);
+      var match = String(hwStr).match(/[*xX]\s*(\d+)/);
       if (match && match[1]) {
         var qty = parseInt(match[1], 10);
         return isNaN(qty) || qty <= 0 ? 1 : qty;
@@ -898,7 +1066,6 @@
       if (!hwStr) return "未指定型號";
       var str = String(hwStr).trim();
       var clean = str.split(/[*xX]/)[0].trim();
-      if (!clean) return "未指定型號";
       return clean.split('/')[0].split(' ')[0].trim() || "未指定型號";
     }
 
@@ -906,14 +1073,13 @@
       if (!rawNotesStr) return [];
       var str = String(rawNotesStr).trim();
       if (!str) return [];
-
       if (str.indexOf(NOTE_DELIMITER) !== -1) {
         return str.split(NOTE_DELIMITER).map(s => s.trim()).filter(s => s !== "");
       }
-
       return str.split("\n").map(s => s.trim()).filter(s => s !== "");
     }
 
+    // ==================== 正式訂單資料處理 ====================
     window.handleSheetData = function(data) {
       var refreshIcon = document.getElementById("refreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
@@ -927,12 +1093,8 @@
 
         orders = data.map(function(item) {
           var orderId = String(item["."] || item["訂單編號"] || item.orderId || "").trim();
-          
           var shipDateRaw = item["L"] || item["預計出貨日期"] || item.shipDate || "";
-          var formattedShipDate = shipDateRaw;
-          if (shipDateRaw && String(shipDateRaw).indexOf("T") !== -1) {
-            formattedShipDate = String(shipDateRaw).split("T")[0];
-          }
+          var formattedShipDate = shipDateRaw && String(shipDateRaw).indexOf("T") !== -1 ? String(shipDateRaw).split("T")[0] : shipDateRaw;
 
           var formatDate = function(val) {
             if (!val) return "";
@@ -944,11 +1106,8 @@
           var parsedAttachments = [];
           if (rawFileUrl) {
             try {
-              if (rawFileUrl.indexOf("[") === 0) {
-                parsedAttachments = JSON.parse(rawFileUrl);
-              } else {
-                parsedAttachments = [{ name: "附件檔案", url: rawFileUrl }];
-              }
+              if (rawFileUrl.indexOf("[") === 0) parsedAttachments = JSON.parse(rawFileUrl);
+              else parsedAttachments = [{ name: "附件檔案", url: rawFileUrl }];
             } catch(e) {
               parsedAttachments = [{ name: "附件檔案", url: rawFileUrl }];
             }
@@ -1000,511 +1159,377 @@
       var oldScript = document.getElementById("jsonpScript");
       if (oldScript) oldScript.remove();
 
-      var fetchTimer = setTimeout(function() {
-        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        var tbody = document.getElementById("orderTableBody");
-        if (tbody && orders.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">⚠ 連線 Google Sheet 逾時，請檢查 Google Apps Script 的權限是否設為「所有人 (Anyone)」。</td></tr>';
-        }
-      }, 12000);
-
       var script = document.createElement("script");
       script.id = "jsonpScript";
       script.src = API_URL + "?callback=handleSheetData&t=" + new Date().getTime();
-      
-      script.onload = function() {
-        clearTimeout(fetchTimer);
-      };
-      
-      script.onerror = function() {
-        clearTimeout(fetchTimer);
-        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
-        document.getElementById("orderTableBody").innerHTML = '<tr><td colspan="11" class="p-8 text-center text-rose-500 font-bold">連線失敗，請確認網路與 Apps Script 設定。</td></tr>';
-      };
-
       document.body.appendChild(script);
     }
 
-    function openSingleTracking(no) {
-      if (!no) return;
-      var cleanNo = String(no).trim();
-      var targetUrl = "https://htm.sf-express.com/tw/tc/dynamic_function/waybill/#search/bill-number/" + encodeURIComponent(cleanNo);
-      window.open(targetUrl, "_blank");
-    }
+    // ==================== POC 資料處理 (新功能) ====================
+    window.handlePocSheetData = function(data) {
+      var refreshIcon = document.getElementById("pocRefreshIcon");
+      if (refreshIcon) refreshIcon.classList.remove("animate-spin");
 
-    function openTodoListModal() {
-      switchTodoTab('pending');
-      toggleModal('todoListModal', true);
-    }
+      try {
+        if (!data || !Array.isArray(data)) {
+          pocList = [];
+          renderPocList();
+          return;
+        }
 
-    function switchTodoTab(tab) {
-      currentTodoTab = tab;
-      var btnPending = document.getElementById("btnTodoPendingTab");
-      var btnCompleted = document.getElementById("btnTodoCompletedTab");
+        pocList = data.map(function(item) {
+          return {
+            pocId: String(item.pocId || "").trim(),
+            customer: String(item.customer || "").trim(),
+            sales: String(item.sales || "").trim(),
+            techContact: String(item.techContact || "").trim(),
+            hwModel: String(item.hwModel || "").trim(),
+            sn: String(item.sn || "").trim(),
+            outboundNo: String(item.outboundNo || "").trim(),
+            startDate: item.startDate || "-",
+            endDate: item.endDate || "-",
+            returnDate: item.returnDate || "",
+            status: String(item.status || "待出庫").trim(),
+            location: String(item.location || "").trim(),
+            notes: Array.isArray(item.notes) ? item.notes : []
+          };
+        }).filter(function(p) { return p.pocId !== ""; });
 
-      if (tab === 'pending') {
-        btnPending.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnCompleted.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
-      } else {
-        btnCompleted.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
-        btnPending.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+        renderPocList();
+      } catch(err) {
+        console.error("POC 資料解析錯誤:", err);
+        renderPocList();
       }
+    };
 
-      renderTodoList();
+    function fetchPocFromSheet() {
+      var refreshIcon = document.getElementById("pocRefreshIcon");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+
+      var oldScript = document.getElementById("jsonpScriptPoc");
+      if (oldScript) oldScript.remove();
+
+      var script = document.createElement("script");
+      script.id = "jsonpScriptPoc";
+      script.src = API_URL + "?type=poc&callback=handlePocSheetData&t=" + new Date().getTime();
+      document.body.appendChild(script);
     }
 
-    function renderTodoList() {
-      var tbody = document.getElementById("todoTableBody");
+    function renderPocList() {
+      var tbody = document.getElementById("pocTableBody");
+      var filterStatus = document.getElementById("filterPocStatus").value;
+      var search = document.getElementById("pocSearchInput").value.toLowerCase();
+
       tbody.innerHTML = "";
-
-      var pendingTodos = [];
-
-      orders.forEach(function(o) {
-        if (Array.isArray(o.notes)) {
-          o.notes.forEach(function(n, index) {
-            if (n.indexOf("📌") !== -1) {
-              var isDone = n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1;
-              
-              if ((currentTodoTab === 'pending' && !isDone) || (currentTodoTab === 'completed' && isDone)) {
-                pendingTodos.push({
-                  order: o,
-                  noteIndex: index,
-                  noteText: n,
-                  isDone: isDone
-                });
-              }
-            }
-          });
-        }
-      });
-
-      if (pendingTodos.length === 0) {
-        var emptyMsg = currentTodoTab === 'pending' ? "目前尚無待處理的追蹤事項 🎉" : "目前尚無已完成的追蹤紀錄";
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">' + emptyMsg + '</td></tr>';
-        return;
-      }
-
-      pendingTodos.forEach(function(todo) {
-        var o = todo.order;
-        var tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50/30 text-xs " + (todo.isDone ? "bg-slate-50 opacity-80" : "");
-
-        var cleanText = todo.noteText.replace("📌 [待追蹤]", "").replace("📌 [已完成]", "").replace("✅", "").trim();
-        var chkHtml = '<input type="checkbox" ' + (todo.isDone ? 'checked' : '') + ' onchange="toggleTodoStatus(\'' + o.orderId + '\', ' + todo.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
-        var textStyle = "font-semibold text-slate-800 whitespace-pre-wrap";
-        var statusBadge = todo.isDone 
-          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已處理 ✅</span>'
-          : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold animate-pulse">待處理</span>';
-
-        tr.innerHTML = 
-          '<td class="p-2.5 text-center">' + chkHtml + '</td>' +
-          '<td class="p-2.5"><div class="font-bold text-[#662E8D] font-mono">' + o.orderId + '</div><div class="font-medium text-slate-700 truncate max-w-[120px]">' + o.customer + '</div></td>' +
-          '<td class="p-2.5"><div class="' + textStyle + ' mb-1">' + cleanText + '</div><div>' + statusBadge + '</div></td>' +
-          '<td class="p-2.5 text-slate-600">' + (o.sales || '-') + '</td>' +
-          '<td class="p-2.5 text-center"><button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-[11px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function toggleTodoStatus(orderId, noteIndex, isChecked) {
-      var order = orders.find(function(o) { return o.orderId === orderId; });
-      if (order && Array.isArray(order.notes) && order.notes[noteIndex]) {
-        var originalNote = order.notes[noteIndex];
-        
-        if (isChecked) {
-          order.notes[noteIndex] = originalNote.replace("📌 [待追蹤]", "📌 [已完成] ✅");
-          if (order.notes[noteIndex].indexOf("📌") === -1) {
-            order.notes[noteIndex] = "📌 [已完成] ✅ " + originalNote;
-          }
-        } else {
-          order.notes[noteIndex] = originalNote.replace("📌 [已完成] ✅", "📌 [待追蹤]").replace("✅", "");
-        }
-
-        renderOrders();
-        renderTodoList();
-
-        await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "update",
-            orderId: orderId,
-            note: order.notes.join(NOTE_DELIMITER)
-          })
-        });
-      }
-    }
-
-    async function deleteNoteItem(orderId, noteIndex) {
-      if (!confirm("確定要刪除這筆備註紀錄嗎？此動作無法復原。")) return;
-
-      var order = orders.find(function(o) { return o.orderId === orderId; });
-      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
-        order.notes.splice(noteIndex, 1);
-
-        renderOrders();
-        renderMonthlyIssues();
-        renderTodoList();
-
-        await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "update",
-            orderId: orderId,
-            note: order.notes.join(NOTE_DELIMITER)
-          })
-        });
-      }
-    }
-
-    function setIssueTimeRange(range) {
-      currentIssueTimeRange = range;
-      var btns = ['month', '3m', 'all'];
-      btns.forEach(function(b) {
-        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
-        if (btn) {
-          if (b === range) {
-            btn.className = "px-2.5 py-1 rounded text-xs font-bold bg-white text-[#662E8D] shadow-sm cursor-pointer";
-          } else {
-            btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
-          }
-        }
-      });
-
-      document.getElementById("issueStartDate").value = "";
-      document.getElementById("issueEndDate").value = "";
-
-      renderMonthlyIssues();
-    }
-
-    function onCustomIssueDateChange() {
-      var btns = ['month', '3m', 'all'];
-      btns.forEach(function(b) {
-        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
-        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
-      });
-      currentIssueTimeRange = 'custom';
-      renderMonthlyIssues();
-    }
-
-    function renderMonthlyIssues() {
-      var tbody = document.getElementById("issuesTableBody");
-      tbody.innerHTML = "";
-
-      var now = new Date();
-      var currentYear = now.getFullYear();
-      var currentMonth = now.getMonth() + 1;
-
-      var startDate = null;
-      var endDate = null;
-
-      if (currentIssueTimeRange === 'month') {
-        startDate = new Date(currentYear, currentMonth - 1, 1);
-        endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
-      } else if (currentIssueTimeRange === '3m') {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-      } else if (currentIssueTimeRange === 'custom') {
-        var sVal = document.getElementById("issueStartDate").value;
-        var eVal = document.getElementById("issueEndDate").value;
-        if (sVal) startDate = new Date(sVal);
-        if (eVal) {
-          endDate = new Date(eVal);
-          endDate.setHours(23, 59, 59, 999);
-        }
-      }
-
-      var issueList = [];
-
-      orders.forEach(function(o) {
-        if (Array.isArray(o.notes)) {
-          o.notes.forEach(function(n, index) {
-            if (n.indexOf("⚠️ [客戶問題]") !== -1 || n.indexOf("✅ [已解決]") !== -1) {
-              var dateMatch = n.match(/\[(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}|\d{1,2}[\/-]\d{1,2})\]/);
-              var noteDateStr = dateMatch ? dateMatch[1] : "";
-              var inRange = true;
-
-              if (noteDateStr && (startDate || endDate)) {
-                var p = noteDateStr.split(/[\/-]/);
-                var noteDate;
-                if (p.length === 3) {
-                  noteDate = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
-                } else if (p.length === 2) {
-                  noteDate = new Date(currentYear, parseInt(p[0], 10) - 1, parseInt(p[1], 10));
-                }
-
-                if (noteDate) {
-                  if (startDate && noteDate < startDate) inRange = false;
-                  if (endDate && noteDate > endDate) inRange = false;
-                }
-              }
-
-              if (inRange) {
-                var isSolved = n.indexOf("✅ [已解決]") !== -1 || n.indexOf("✅") !== -1;
-                var cleanIssueText = n.replace("⚠️ [客戶問題]", "").replace("✅ [已解決]", "").replace("📌 [待追蹤]", "").replace("✅", "").trim();
-
-                issueList.push({
-                  orderId: o.orderId,
-                  customer: o.customer,
-                  sales: o.sales,
-                  date: noteDateStr || "歷史紀錄",
-                  text: cleanIssueText,
-                  isSolved: isSolved,
-                  noteIndex: index,
-                  rawNote: n
-                });
-              }
-            }
-          });
-        }
-      });
-
-      if (issueList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">目前選擇時間區間內無客戶問題紀錄 🎉</td></tr>';
-        return;
-      }
-
-      issueList.forEach(function(issue) {
-        var tr = document.createElement("tr");
-        tr.className = "border-b hover:bg-purple-50/20 text-xs sm:text-sm " + (issue.isSolved ? "bg-slate-50/80" : "");
-
-        var chkHtml = '<input type="checkbox" ' + (issue.isSolved ? 'checked' : '') + ' onchange="toggleIssueSolvedStatus(\'' + issue.orderId + '\', ' + issue.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
-
-        var textStyle = issue.isSolved 
-          ? "text-slate-700 bg-slate-100 p-2 rounded font-normal whitespace-pre-wrap" 
-          : "text-rose-700 bg-rose-50/80 p-2 rounded font-medium border border-rose-100 whitespace-pre-wrap";
-
-        var statusBadge = issue.isSolved 
-          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已解決 ✅</span>' 
-          : '<span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] font-bold animate-pulse">待處理 ⚠️</span>';
-
-        tr.innerHTML = 
-          '<td class="p-3 text-center">' + chkHtml + '</td>' +
-          '<td class="p-3 font-mono font-medium text-slate-600">' + issue.date + '</td>' +
-          '<td class="p-3 font-mono font-bold text-[#662E8D]">' + issue.orderId + '</td>' +
-          '<td class="p-3 font-bold text-slate-800">' + issue.customer + '</td>' +
-          '<td class="p-3"><div class="' + textStyle + ' mb-1">' + issue.text + '</div><div>' + statusBadge + '</div></td>' +
-          '<td class="p-3 text-slate-600">' + issue.sales + '</td>' +
-          '<td class="p-3 text-center"><button onclick="openOrderModal(\'' + issue.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
-        
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function toggleIssueSolvedStatus(orderId, noteIndex, isSolved) {
-      var order = orders.find(function(o) { return o.orderId === orderId; });
-      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
-        var originalNote = order.notes[noteIndex];
-        
-        if (isSolved) {
-          order.notes[noteIndex] = originalNote.replace("⚠️ [客戶問題]", "✅ [已解決] ✅");
-          if (order.notes[noteIndex].indexOf("✅") === -1) {
-            order.notes[noteIndex] = "✅ [已解決] " + originalNote;
-          }
-        } else {
-          order.notes[noteIndex] = originalNote.replace("✅ [已解決]", "⚠️ [客戶問題]").replace("✅", "");
-        }
-
-        renderOrders();
-        renderMonthlyIssues();
-
-        await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "update",
-            orderId: orderId,
-            note: order.notes.join(NOTE_DELIMITER)
-          })
-        });
-      }
-    }
-
-    function exportIssuesCsv() {
-      var rows = [["狀態", "紀錄日期", "訂單單號", "客戶名稱", "客戶問題與處理紀錄", "負責業務"]];
-      
-      var tableRows = document.querySelectorAll("#issuesTableBody tr");
-      tableRows.forEach(function(r) {
-        var cols = r.querySelectorAll("td");
-        if (cols.length >= 6) {
-          var chk = cols[0].querySelector("input[type='checkbox']");
-          var isSolved = chk && chk.checked ? "已解決" : "待處理";
-          rows.push([
-            isSolved,
-            cols[1].innerText.trim(),
-            cols[2].innerText.trim(),
-            cols[3].innerText.trim(),
-            cols[4].innerText.trim().replace(/\n/g, " "),
-            cols[5].innerText.trim()
-          ]);
-        }
-      });
-
-      var csvContent = "\uFEFF" + rows.map(e => e.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(",")).join("\n");
-      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      var link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "客戶問題與客訴彙總報表_" + new Date().toISOString().split('T')[0] + ".csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function openShipmentTrackerModal() {
-      var tbodyOverdue = document.getElementById("trackerTableOverdueBody");
-      var tbody5 = document.getElementById("trackerTable5Body");
-      var tbody10 = document.getElementById("trackerTable10Body");
-
-      tbodyOverdue.innerHTML = "";
-      tbody5.innerHTML = "";
-      tbody10.innerHTML = "";
 
       var now = new Date();
       var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-      var listOverdue = [];
-      var list5 = [];
-      var list10 = [];
+      var countActive = 0;
+      var countExpiring = 0;
+      var countOverdue = 0;
 
-      var totalQtyOverdue = 0;
-      var totalQty5 = 0;
-      var totalQty10 = 0;
-
-      orders.forEach(function(o) {
-        if (o.status === "出貨完成" || o.status === "退貨處理") return;
-        if (!o.shipDate || o.shipDate === "-") return;
-
-        var cleanDateStr = o.shipDate.replace(/\//g, "-").trim();
-        var parts = cleanDateStr.split("-");
-        var targetDate;
-
-        if (parts.length === 3) {
-          targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        } else if (parts.length === 2) {
-          targetDate = new Date(today.getFullYear(), parseInt(parts[0], 10) - 1, parseInt(parts[2], 10));
-        } else {
-          return;
-        }
-
-        var diffTime = targetDate.getTime() - today.getTime();
-        var diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-        var qty = parseHardwareQty(o.hardware);
-
-        if (diffDays < 0) {
-          listOverdue.push({ order: o, daysLeft: diffDays, qty: qty });
-          totalQtyOverdue += qty;
-        } else if (diffDays >= 0 && diffDays <= 5) {
-          list5.push({ order: o, daysLeft: diffDays, qty: qty });
-          totalQty5 += qty;
-        } else if (diffDays >= 6 && diffDays <= 10) {
-          list10.push({ order: o, daysLeft: diffDays, qty: qty });
-          totalQty10 += qty;
+      pocList.forEach(function(p) {
+        if (p.status === "測試中") countActive++;
+        if (p.endDate && p.endDate !== "-" && p.status !== "已歸還" && p.status !== "轉正式訂單") {
+          var pDate = new Date(p.endDate.replace(/\//g, "-"));
+          var diffDays = Math.round((pDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+          if (diffDays < 0) countOverdue++;
+          else if (diffDays >= 0 && diffDays <= 7) countExpiring++;
         }
       });
 
-      document.getElementById("trackerKpiOverdue").innerText = listOverdue.length + " 筆廠商 / 共 " + totalQtyOverdue + " 台";
-      document.getElementById("trackerKpi5").innerText = list5.length + " 筆廠商 / 共 " + totalQty5 + " 台";
-      document.getElementById("trackerKpi10").innerText = list10.length + " 筆廠商 / 共 " + totalQty10 + " 台";
+      document.getElementById("pocKpiTotal").innerText = pocList.length + " 台";
+      document.getElementById("pocKpiActive").innerText = countActive + " 台";
+      document.getElementById("pocKpiExpiring").innerText = countExpiring + " 台";
+      document.getElementById("pocKpiOverdue").innerText = countOverdue + " 台";
 
-      if (listOverdue.length === 0) {
-        tbodyOverdue.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無逾期未結案件 🎉</td></tr>';
-      } else {
-        listOverdue.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
-          var o = item.order;
-          var daysAgo = Math.abs(item.daysLeft);
-          var statusBadgeClass = o.status === '出貨中' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800 font-bold';
+      var filtered = pocList.filter(function(p) {
+        var matchStatus = filterStatus === "ALL" || p.status === filterStatus;
+        var matchSearch = p.pocId.toLowerCase().indexOf(search) !== -1 ||
+                          p.customer.toLowerCase().indexOf(search) !== -1 ||
+                          p.sales.toLowerCase().indexOf(search) !== -1 ||
+                          p.hwModel.toLowerCase().indexOf(search) !== -1 ||
+                          p.sn.toLowerCase().indexOf(search) !== -1 ||
+                          p.location.toLowerCase().indexOf(search) !== -1;
+        return matchStatus && matchSearch;
+      });
 
-          var tr = document.createElement("tr");
-          tr.className = "border-b hover:bg-rose-100/30";
-          tr.innerHTML = 
-            '<td class="p-2.5 font-mono font-semibold text-rose-600">' + o.shipDate + ' <span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded ml-1">⚠️ 逾期 ' + daysAgo + ' 天</span></td>' +
-            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
-            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
-            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-rose-600">(' + item.qty + '台)</span></td>' +
-            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> <span class="text-xs px-1.5 py-0.5 rounded ' + statusBadgeClass + '">' + o.status + '</span></div></td>';
-          tbodyOverdue.appendChild(tr);
-        });
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-400">目前尚無 POC 借測資料</td></tr>';
+        return;
       }
 
-      if (list5.length === 0) {
-        tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天內待出貨之訂單</td></tr>';
-      } else {
-        list5.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
-          var o = item.order;
-          var badgeText = item.daysLeft === 0 ? "🔥 今日預計出貨" : item.daysLeft + " 天後交貨";
+      filtered.forEach(function(p) {
+        var tr = document.createElement("tr");
+        tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-xs sm:text-sm";
 
-          var statusBadge = o.status === '已安裝'
-            ? '<span class="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded">🟢 已安裝 (可出貨)</span>'
-            : '<span class="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">' + o.status + '</span>';
+        // 倒數到期計算
+        var deadlineBadge = "";
+        if (p.endDate && p.endDate !== "-" && p.status !== "已歸還" && p.status !== "轉正式訂單") {
+          var pDate = new Date(p.endDate.replace(/\//g, "-"));
+          var diffDays = Math.round((pDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+          if (diffDays < 0) {
+            deadlineBadge = '<span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded ml-1 animate-pulse">🚨 逾期 ' + Math.abs(diffDays) + ' 天</span>';
+          } else if (diffDays <= 7) {
+            deadlineBadge = '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded ml-1">⏰ 剩 ' + diffDays + ' 天</span>';
+          }
+        }
 
-          var tr = document.createElement("tr");
-          tr.className = "border-b hover:bg-amber-50/40";
-          tr.innerHTML = 
-            '<td class="p-2.5 font-mono font-semibold text-amber-700">' + o.shipDate + ' <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded ml-1">' + badgeText + '</span></td>' +
-            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
-            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
-            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-amber-600">(' + item.qty + '台)</span></td>' +
-            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> ' + statusBadge + '</div></td>';
-          tbody5.appendChild(tr);
-        });
-      }
+        var notesHtml = '<div class="text-xs text-slate-400">-</div>';
+        if (Array.isArray(p.notes) && p.notes.length > 0) {
+          notesHtml = p.notes.map(function(n, index) {
+            var delBtn = '<button onclick="deletePocNoteItem(\'' + p.pocId + '\', ' + index + ')" class="text-slate-400 hover:text-rose-600 font-bold ml-1 px-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity" title="刪除備註">✕</button>';
+            return '<div class="group relative text-xs text-slate-600 bg-slate-100 p-1.5 rounded mb-1 flex justify-between items-start"><div class="whitespace-pre-wrap flex-1">' + n + '</div>' + delBtn + '</div>';
+          }).join('');
+        }
 
-      if (list10.length === 0) {
-        tbody10.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天待出貨之訂單</td></tr>';
-      } else {
-        list10.sort(function(a,b){ return a.daysLeft - b.daysLeft; }).forEach(function(item) {
-          var o = item.order;
-          var statusBadge = o.status === '已安裝'
-            ? '<span class="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded">🟢 已安裝 (可出貨)</span>'
-            : '<span class="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded">' + o.status + '</span>';
+        var statusOptionsHtml = POC_STATUS_OPTIONS.map(function(st) {
+          return '<option value="' + st + '" ' + (p.status === st ? 'selected' : '') + '>' + st + '</option>';
+        }).join('');
 
-          var tr = document.createElement("tr");
-          tr.className = "border-b hover:bg-purple-50/40";
-          tr.innerHTML = 
-            '<td class="p-2.5 font-mono font-semibold text-[#662E8D]">' + o.shipDate + ' <span class="text-[10px] bg-purple-100 text-[#662E8D] px-1.5 py-0.5 rounded ml-1">' + item.daysLeft + ' 天後交貨</span></td>' +
-            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
-            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
-            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-[#662E8D]">(' + item.qty + '台)</span></td>' +
-            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> ' + statusBadge + '</div></td>';
-          tbody10.appendChild(tr);
-        });
-      }
+        var outboundBadge = p.outboundNo ? '<div class="text-[11px] font-mono text-blue-700 bg-blue-50 inline-block px-1 rounded mt-0.5">出庫單: ' + p.outboundNo + '</div>' : '';
 
-      toggleModal("shipmentTrackerModal", true);
+        tr.innerHTML = 
+          '<td class="p-2.5 sm:p-3">' +
+            '<div class="font-mono font-bold text-[#662E8D]">' + p.pocId + '</div>' +
+            '<div class="font-bold text-slate-800">' + p.customer + '</div>' +
+            outboundBadge +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3 text-xs">' +
+            '<div class="font-medium text-slate-700">業務: ' + (p.sales || '-') + '</div>' +
+            '<div class="text-slate-400 mt-0.5">技術: ' + (p.techContact || '-') + '</div>' +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3 text-xs">' +
+            '<div class="font-semibold text-slate-800">' + p.hwModel + '</div>' +
+            (p.sn ? '<div class="font-mono text-purple-700 bg-purple-50 inline-block px-1 rounded mt-0.5 font-bold">SN: ' + p.sn + '</div>' : '') +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3 text-xs font-mono">' +
+            '<div>借: ' + p.startDate + '</div>' +
+            '<div class="font-semibold text-slate-700">止: ' + p.endDate + ' ' + deadlineBadge + '</div>' +
+            (p.returnDate ? '<div class="text-emerald-600">還: ' + p.returnDate + '</div>' : '') +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3 text-xs">' +
+            '<span class="bg-slate-100 text-slate-700 px-2 py-1 rounded font-medium inline-block">📍 ' + (p.location || '未標註') + '</span>' +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3">' +
+            '<select onchange="updatePocField(\'' + p.pocId + '\', \'status\', this.value)" class="text-xs border rounded p-1 bg-white font-medium cursor-pointer">' +
+              statusOptionsHtml +
+            '</select>' +
+          '</td>' +
+          '<td class="p-2.5 sm:p-3 max-w-[240px]">' + notesHtml + '</td>' +
+          '<td class="p-2.5 sm:p-3">' +
+            '<div class="flex flex-col gap-1">' +
+              '<button onclick="openPocModal(\'' + p.pocId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
+              '<button onclick="openNoteModalForPoc(\'' + p.pocId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
+              '<button onclick="convertPocToOfficialOrder(\'' + p.pocId + '\')" class="text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 px-2 py-1 rounded font-bold cursor-pointer" title="轉為正式訂單採購">🎉 轉正式訂單</button>' +
+            '</div>' +
+          '</td>';
+
+        tbody.appendChild(tr);
+      });
     }
 
+    function openPocModal(pocId) {
+      document.getElementById("pocForm").reset();
+      document.getElementById("editPocId").value = "";
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById("pocStartDate").value = today;
+
+      // 預設預計結束日為 14 天後
+      var defaultEnd = new Date();
+      defaultEnd.setDate(defaultEnd.getDate() + 14);
+      document.getElementById("pocEndDate").value = defaultEnd.toISOString().split('T')[0];
+
+      if (pocId) {
+        var p = pocList.find(function(item) { return item.pocId === pocId; });
+        if (!p) return;
+
+        document.getElementById("pocModalTitle").innerText = "✏️ 編輯 POC 借測：" + p.pocId;
+        document.getElementById("editPocId").value = p.pocId;
+        document.getElementById("pocCode").value = p.pocId;
+        document.getElementById("pocCode").disabled = true;
+
+        document.getElementById("pocCustomer").value = p.customer;
+        document.getElementById("pocSales").value = p.sales;
+        document.getElementById("pocTechContact").value = p.techContact;
+        document.getElementById("pocHwModel").value = p.hwModel;
+        document.getElementById("pocSn").value = p.sn;
+        document.getElementById("pocOutboundNo").value = p.outboundNo;
+        document.getElementById("pocStartDate").value = p.startDate !== "-" ? p.startDate : today;
+        document.getElementById("pocEndDate").value = p.endDate !== "-" ? p.endDate : "";
+        document.getElementById("pocReturnDate").value = p.returnDate || "";
+        document.getElementById("pocStatus").value = p.status || "測試中";
+        document.getElementById("pocLocation").value = p.location;
+        document.getElementById("pocInitialNoteBox").classList.add("hidden");
+
+      } else {
+        document.getElementById("pocModalTitle").innerText = "建立 POC 測試機借測紀錄";
+        document.getElementById("pocCode").disabled = false;
+        document.getElementById("pocInitialNoteBox").classList.remove("hidden");
+        autoGeneratePocCode();
+      }
+
+      toggleModal("pocModal", true);
+    }
+
+    async function submitPoc(e) {
+      e.preventDefault();
+      var submitBtn = document.getElementById("pocSubmitBtn");
+      submitBtn.innerText = "同步至雲端中...";
+      submitBtn.disabled = true;
+
+      var editPocId = document.getElementById("editPocId").value;
+      var isEdit = !!editPocId;
+
+      var payload = {
+        action: isEdit ? "update_poc" : "create_poc",
+        pocId: isEdit ? editPocId : document.getElementById("pocCode").value.trim(),
+        customer: document.getElementById("pocCustomer").value.trim(),
+        sales: document.getElementById("pocSales").value.trim(),
+        techContact: document.getElementById("pocTechContact").value.trim(),
+        hwModel: document.getElementById("pocHwModel").value.trim(),
+        sn: document.getElementById("pocSn").value.trim(),
+        outboundNo: document.getElementById("pocOutboundNo").value.trim(),
+        startDate: document.getElementById("pocStartDate").value,
+        endDate: document.getElementById("pocEndDate").value,
+        returnDate: document.getElementById("pocReturnDate").value,
+        status: document.getElementById("pocStatus").value,
+        location: document.getElementById("pocLocation").value.trim()
+      };
+
+      var initialNote = document.getElementById("pocInitialNote").value.trim();
+      if (!isEdit && initialNote) {
+        payload.note = "[" + new Date().toLocaleDateString() + " 建立] " + initialNote;
+      }
+
+      toggleModal('pocModal', false);
+
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        await new Promise(function(res) { setTimeout(res, 1200); });
+        fetchPocFromSheet();
+      } catch(err) {
+        console.error("POC 操作失敗:", err);
+      } finally {
+        submitBtn.innerText = "儲存 POC 紀錄";
+        submitBtn.disabled = false;
+      }
+    }
+
+    async function updatePocField(pocId, field, value) {
+      var item = pocList.find(function(p) { return p.pocId === pocId; });
+      if (item) {
+        item[field] = value;
+        var payload = { action: "update_poc", pocId: pocId };
+        payload[field] = value;
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+      }
+    }
+
+    function openNoteModalForPoc(pocId) {
+      document.getElementById("currentOrderId").value = pocId;
+      document.getElementById("currentNoteTargetType").value = "poc";
+      document.getElementById("noteTargetOrder").innerText = "針對 POC 單號: " + pocId;
+      document.getElementById("newNoteText").value = "";
+      document.getElementById("orderNoteTagsGroup").classList.add("hidden");
+      toggleModal('noteModal', true);
+    }
+
+    async function deletePocNoteItem(pocId, noteIndex) {
+      if (!confirm("確定要刪除這筆 POC 備註嗎？此動作無法復原。")) return;
+      var item = pocList.find(function(p) { return p.pocId === pocId; });
+      if (item && Array.isArray(item.notes) && item.notes[noteIndex] !== undefined) {
+        item.notes.splice(noteIndex, 1);
+        renderPocList();
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update_poc",
+            pocId: pocId,
+            note: item.notes.join(NOTE_DELIMITER)
+          })
+        });
+      }
+    }
+
+    // 將 POC 借測轉為正式訂單
+    function convertPocToOfficialOrder(pocId) {
+      var p = pocList.find(function(item) { return item.pocId === pocId; });
+      if (!p) return;
+
+      switchMainTab('orders');
+      openOrderModal(null);
+
+      // 自動帶入 POC 資料到訂單彈窗
+      document.getElementById("custName").value = p.customer;
+      document.getElementById("salesName").value = p.sales;
+      document.getElementById("hwInfo").value = p.hwModel + (p.sn ? " / " + p.sn : "");
+      document.getElementById("initialNote").value = "由 POC 借測單 " + p.pocId + " 成功轉為正式採購訂單。";
+    }
+
+    // 依據目前主頁籤決定頂部「+ 新增」按鈕行為
+    function handleMainAddAction() {
+      if (currentMainTab === 'poc') {
+        openPocModal(null);
+      } else {
+        openOrderModal(null);
+      }
+    }
+
+    // 主頁籤切換
     function switchMainTab(tab) {
+      currentMainTab = tab;
       var btnOrders = document.getElementById("tabBtnOrders");
+      var btnPoc = document.getElementById("tabBtnPoc");
       var btnAnalytics = document.getElementById("tabBtnAnalytics");
       var btnIssues = document.getElementById("tabBtnIssues");
 
       var secOrders = document.getElementById("sectionOrders");
+      var secPoc = document.getElementById("sectionPoc");
       var secAnalytics = document.getElementById("sectionAnalytics");
       var secIssues = document.getElementById("sectionIssues");
 
-      [btnOrders, btnAnalytics, btnIssues].forEach(b => {
+      var btnMainAdd = document.getElementById("btnMainAdd");
+
+      [btnOrders, btnPoc, btnAnalytics, btnIssues].forEach(b => {
         b.className = "px-3 sm:px-4 py-1.5 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
       });
-      [secOrders, secAnalytics, secIssues].forEach(s => s.classList.add("hidden"));
+      [secOrders, secPoc, secAnalytics, secIssues].forEach(s => s.classList.add("hidden"));
 
       if (tab === 'orders') {
         btnOrders.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
         secOrders.classList.remove("hidden");
+        btnMainAdd.innerText = "+ 新增訂單";
+      } else if (tab === 'poc') {
+        btnPoc.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer flex items-center gap-1";
+        secPoc.classList.remove("hidden");
+        btnMainAdd.innerText = "+ 新增 POC 借測";
+        fetchPocFromSheet();
       } else if (tab === 'analytics') {
         btnAnalytics.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
         secAnalytics.classList.remove("hidden");
         safeRenderCharts();
       } else if (tab === 'issues') {
-        btnIssues.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnIssues.className = "px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer flex items-center gap-1";
         secIssues.classList.remove("hidden");
         renderMonthlyIssues();
       }
     }
 
-    function toggleModal(id, show) {
-      document.getElementById(id).classList.toggle("hidden", !show);
-    }
+    function toggleModal(id, show) { document.getElementById(id).classList.toggle("hidden", !show); }
 
     function handlePaymentStatusChange() {
       var pStatus = document.getElementById("paymentStatus").value;
@@ -1567,9 +1592,7 @@
         document.getElementById("initialNoteBox").classList.add("hidden");
 
         if (Array.isArray(o.attachments) && o.attachments.length > 0) {
-          o.attachments.forEach(function(att) {
-            addAttachmentRow(att.name, att.url);
-          });
+          o.attachments.forEach(function(att) { addAttachmentRow(att.name, att.url); });
         } else {
           addAttachmentRow("", "");
         }
@@ -1578,11 +1601,9 @@
         document.getElementById("modalTitle").innerText = "建立 AISO 一體機新訂單";
         document.getElementById("customOrderId").disabled = false;
         document.getElementById("initialNoteBox").classList.remove("hidden");
-        
         document.getElementById("swInfo").value = "Orient AI 2.0";
         document.getElementById("outboundNo").value = "";
         document.getElementById("licenseKey").value = "";
-
         addAttachmentRow("", "");
         autoGenerateDNCode();
       }
@@ -1598,7 +1619,6 @@
       var search = document.getElementById("searchInput").value.toLowerCase();
 
       tbody.innerHTML = "";
-
       var totalPendingTodos = 0;
 
       if (!orders || orders.length === 0) {
@@ -1754,7 +1774,7 @@
           '<td class="p-2.5 sm:p-3">' +
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
-              '<button onclick="openNoteModal(\'' + o.orderId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
+              '<button onclick="openNoteModalForOrder(\'' + o.orderId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
               '<div class="flex flex-wrap gap-1 mt-0.5">' + fileLinksHtml + '</div>' +
             '</div>' +
           '</td>';
@@ -1836,40 +1856,436 @@
       }
     }
 
-    function openNoteModal(orderId) {
+    function openNoteModalForOrder(orderId) {
       document.getElementById("currentOrderId").value = orderId;
-      document.getElementById("noteTargetOrder").innerText = "針對單號: " + orderId;
+      document.getElementById("currentNoteTargetType").value = "order";
+      document.getElementById("noteTargetOrder").innerText = "針對訂單單號: " + orderId;
       document.getElementById("newNoteText").value = "";
       document.getElementById("chkNeedTrack").checked = false;
       document.getElementById("chkIsIssue").checked = false;
+      document.getElementById("orderNoteTagsGroup").classList.remove("hidden");
       toggleModal('noteModal', true);
     }
 
     async function saveNote() {
-      var orderId = document.getElementById("currentOrderId").value;
+      var targetId = document.getElementById("currentOrderId").value;
+      var targetType = document.getElementById("currentNoteTargetType").value;
       var text = document.getElementById("newNoteText").value.trim();
-      var needTrack = document.getElementById("chkNeedTrack").checked;
-      var isIssue = document.getElementById("chkIsIssue").checked;
-      
       if (!text) return;
 
+      var dateStr = new Date().toLocaleDateString();
+      var formattedNote = "[" + dateStr + "] " + text;
+
+      if (targetType === "poc") {
+        var pocItem = pocList.find(function(p) { return p.pocId === targetId; });
+        if (pocItem) {
+          if (!Array.isArray(pocItem.notes)) pocItem.notes = [];
+          pocItem.notes.push(formattedNote);
+
+          toggleModal('noteModal', false);
+          renderPocList();
+
+          await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "update_poc",
+              pocId: targetId,
+              note: pocItem.notes.join(NOTE_DELIMITER)
+            })
+          });
+          await new Promise(function(res) { setTimeout(res, 1000); });
+          fetchPocFromSheet();
+        }
+      } else {
+        var needTrack = document.getElementById("chkNeedTrack").checked;
+        var isIssue = document.getElementById("chkIsIssue").checked;
+
+        var order = orders.find(function(o) { return o.orderId === targetId; });
+        if (order) {
+          if (!Array.isArray(order.notes)) order.notes = [];
+          if (isIssue) formattedNote = "⚠️ [客戶問題] " + formattedNote;
+          if (needTrack) formattedNote = "📌 [待追蹤] " + formattedNote;
+
+          order.notes.push(formattedNote);
+
+          toggleModal('noteModal', false);
+          renderOrders();
+          renderMonthlyIssues();
+
+          await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "update",
+              orderId: targetId,
+              note: order.notes.join(NOTE_DELIMITER)
+            })
+          });
+          await new Promise(function(res) { setTimeout(res, 1000); });
+          fetchOrdersFromSheet();
+        }
+      }
+    }
+
+    async function deleteNoteItem(orderId, noteIndex) {
+      if (!confirm("確定要刪除這筆備註紀錄嗎？此動作無法復原。")) return;
+
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
+        order.notes.splice(noteIndex, 1);
+
+        renderOrders();
+        renderMonthlyIssues();
+        renderTodoList();
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join(NOTE_DELIMITER)
+          })
+        });
+      }
+    }
+
+    async function updateOrderField(orderId, field, value) {
       var order = orders.find(function(o) { return o.orderId === orderId; });
       if (order) {
-        if (!Array.isArray(order.notes)) order.notes = [];
-        var dateStr = new Date().toLocaleDateString();
-        
-        var formattedNote = "[" + dateStr + "] " + text;
-        
-        if (isIssue) {
-          formattedNote = "⚠️ [客戶問題] " + formattedNote;
+        order[field] = value;
+        var payload = { action: "update", orderId: orderId };
+        payload[field] = value;
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+      }
+    }
+
+    function openSingleTracking(no) {
+      if (!no) return;
+      window.open("https://htm.sf-express.com/tw/tc/dynamic_function/waybill/#search/bill-number/" + encodeURIComponent(String(no).trim()), "_blank");
+    }
+
+    function openTodoListModal() {
+      switchTodoTab('pending');
+      toggleModal('todoListModal', true);
+    }
+
+    function switchTodoTab(tab) {
+      currentTodoTab = tab;
+      var btnPending = document.getElementById("btnTodoPendingTab");
+      var btnCompleted = document.getElementById("btnTodoCompletedTab");
+
+      if (tab === 'pending') {
+        btnPending.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnCompleted.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+      } else {
+        btnCompleted.className = "px-3 py-1 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer";
+        btnPending.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-[#662E8D] transition cursor-pointer";
+      }
+
+      renderTodoList();
+    }
+
+    function renderTodoList() {
+      var tbody = document.getElementById("todoTableBody");
+      tbody.innerHTML = "";
+      var pendingTodos = [];
+
+      orders.forEach(function(o) {
+        if (Array.isArray(o.notes)) {
+          o.notes.forEach(function(n, index) {
+            if (n.indexOf("📌") !== -1) {
+              var isDone = n.indexOf("[已完成]") !== -1 || n.indexOf("✅") !== -1;
+              if ((currentTodoTab === 'pending' && !isDone) || (currentTodoTab === 'completed' && isDone)) {
+                pendingTodos.push({
+                  order: o,
+                  noteIndex: index,
+                  noteText: n,
+                  isDone: isDone
+                });
+              }
+            }
+          });
         }
-        if (needTrack) {
-          formattedNote = "📌 [待追蹤] " + formattedNote;
+      });
+
+      if (pendingTodos.length === 0) {
+        var emptyMsg = currentTodoTab === 'pending' ? "目前尚無待處理的追蹤事項 🎉" : "目前尚無已完成的追蹤紀錄";
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400">' + emptyMsg + '</td></tr>';
+        return;
+      }
+
+      pendingTodos.forEach(function(todo) {
+        var o = todo.order;
+        var tr = document.createElement("tr");
+        tr.className = "border-b hover:bg-purple-50/30 text-xs " + (todo.isDone ? "bg-slate-50 opacity-80" : "");
+
+        var cleanText = todo.noteText.replace("📌 [待追蹤]", "").replace("📌 [已完成]", "").replace("✅", "").trim();
+        var chkHtml = '<input type="checkbox" ' + (todo.isDone ? 'checked' : '') + ' onchange="toggleTodoStatus(\'' + o.orderId + '\', ' + todo.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
+        var textStyle = "font-semibold text-slate-800 whitespace-pre-wrap";
+        var statusBadge = todo.isDone 
+          ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已處理 ✅</span>'
+          : '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold animate-pulse">待處理</span>';
+
+        tr.innerHTML = 
+          '<td class="p-2.5 text-center">' + chkHtml + '</td>' +
+          '<td class="p-2.5"><div class="font-bold text-[#662E8D] font-mono">' + o.orderId + '</div><div class="font-medium text-slate-700 truncate max-w-[120px]">' + o.customer + '</div></td>' +
+          '<td class="p-2.5"><div class="' + textStyle + ' mb-1">' + cleanText + '</div><div>' + statusBadge + '</div></td>' +
+          '<td class="p-2.5 text-slate-600">' + (o.sales || '-') + '</td>' +
+          '<td class="p-2.5 text-center"><button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-[11px] bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function toggleTodoStatus(orderId, noteIndex, isChecked) {
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex]) {
+        var originalNote = order.notes[noteIndex];
+        if (isChecked) {
+          order.notes[noteIndex] = originalNote.replace("📌 [待追蹤]", "📌 [已完成] ✅");
+          if (order.notes[noteIndex].indexOf("📌") === -1) order.notes[noteIndex] = "📌 [已完成] ✅ " + originalNote;
+        } else {
+          order.notes[noteIndex] = originalNote.replace("📌 [已完成] ✅", "📌 [待追蹤]").replace("✅", "");
         }
 
-        order.notes.push(formattedNote);
+        renderOrders();
+        renderTodoList();
 
-        toggleModal('noteModal', false);
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "update",
+            orderId: orderId,
+            note: order.notes.join(NOTE_DELIMITER)
+          })
+        });
+      }
+    }
+
+    function openShipmentTrackerModal() {
+      var tbodyOverdue = document.getElementById("trackerTableOverdueBody");
+      var tbody5 = document.getElementById("trackerTable5Body");
+      var tbody10 = document.getElementById("trackerTable10Body");
+
+      tbodyOverdue.innerHTML = "";
+      tbody5.innerHTML = "";
+      tbody10.innerHTML = "";
+
+      var now = new Date();
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      var listOverdue = [];
+      var list5 = [];
+      var list10 = [];
+
+      var totalQtyOverdue = 0;
+      var totalQty5 = 0;
+      var totalQty10 = 0;
+
+      orders.forEach(function(o) {
+        if (o.status === "出貨完成" || o.status === "退貨處理") return;
+        if (!o.shipDate || o.shipDate === "-") return;
+
+        var cleanDateStr = o.shipDate.replace(/\//g, "-").trim();
+        var parts = cleanDateStr.split("-");
+        var targetDate;
+
+        if (parts.length === 3) targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        else if (parts.length === 2) targetDate = new Date(today.getFullYear(), parseInt(parts[0], 10) - 1, parseInt(parts[2], 10));
+        else return;
+
+        var diffDays = Math.round((targetDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
+        var qty = parseHardwareQty(o.hardware);
+
+        if (diffDays < 0) {
+          listOverdue.push({ order: o, daysLeft: diffDays, qty: qty });
+          totalQtyOverdue += qty;
+        } else if (diffDays >= 0 && diffDays <= 5) {
+          list5.push({ order: o, daysLeft: diffDays, qty: qty });
+          totalQty5 += qty;
+        } else if (diffDays >= 6 && diffDays <= 10) {
+          list10.push({ order: o, daysLeft: diffDays, qty: qty });
+          totalQty10 += qty;
+        }
+      });
+
+      document.getElementById("trackerKpiOverdue").innerText = listOverdue.length + " 筆廠商 / 共 " + totalQtyOverdue + " 台";
+      document.getElementById("trackerKpi5").innerText = list5.length + " 筆廠商 / 共 " + totalQty5 + " 台";
+      document.getElementById("trackerKpi10").innerText = list10.length + " 筆廠商 / 共 " + totalQty10 + " 台";
+
+      if (listOverdue.length === 0) {
+        tbodyOverdue.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無逾期未結案件 🎉</td></tr>';
+      } else {
+        listOverdue.sort((a,b)=>a.daysLeft-b.daysLeft).forEach(function(item) {
+          var o = item.order;
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-rose-100/30";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-rose-600">' + o.shipDate + ' <span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded ml-1">⚠️ 逾期 ' + Math.abs(item.daysLeft) + ' 天</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-rose-600">(' + item.qty + '台)</span></td>' +
+            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> <span class="text-xs px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">' + o.status + '</span></div></td>';
+          tbodyOverdue.appendChild(tr);
+        });
+      }
+
+      if (list5.length === 0) {
+        tbody5.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 5 天內待出貨之訂單</td></tr>';
+      } else {
+        list5.sort((a,b)=>a.daysLeft-b.daysLeft).forEach(function(item) {
+          var o = item.order;
+          var badgeText = item.daysLeft === 0 ? "🔥 今日預計出貨" : item.daysLeft + " 天後交貨";
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-amber-50/40";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-amber-700">' + o.shipDate + ' <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded ml-1">' + badgeText + '</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-amber-600">(' + item.qty + '台)</span></td>' +
+            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">' + o.status + '</span></div></td>';
+          tbody5.appendChild(tr);
+        });
+      }
+
+      if (list10.length === 0) {
+        tbody10.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">目前無未來 6~10 天待出貨之訂單</td></tr>';
+      } else {
+        list10.sort((a,b)=>a.daysLeft-b.daysLeft).forEach(function(item) {
+          var o = item.order;
+          var tr = document.createElement("tr");
+          tr.className = "border-b hover:bg-purple-50/40";
+          tr.innerHTML = 
+            '<td class="p-2.5 font-mono font-semibold text-[#662E8D]">' + o.shipDate + ' <span class="text-[10px] bg-purple-100 text-[#662E8D] px-1.5 py-0.5 rounded ml-1">' + item.daysLeft + ' 天後交貨</span></td>' +
+            '<td class="p-2.5 font-mono font-bold text-[#662E8D]">' + o.orderId + (o.erpId ? '<br><span class="text-[10px] text-slate-400 font-normal">ERP: ' + o.erpId + '</span>' : '') + '</td>' +
+            '<td class="p-2.5 font-bold text-slate-800">' + o.customer + '</td>' +
+            '<td class="p-2.5 text-slate-600 max-w-[200px] truncate" title="' + o.hardware + '">' + o.hardware + ' <span class="font-bold text-[#662E8D]">(' + item.qty + '台)</span></td>' +
+            '<td class="p-2.5"><div class="flex items-center gap-1"><span class="text-xs text-slate-500">' + o.sales + '</span> <span class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">' + o.status + '</span></div></td>';
+          tbody10.appendChild(tr);
+        });
+      }
+
+      toggleModal("shipmentTrackerModal", true);
+    }
+
+    // ==================== 客戶問題與客訴彙總 ====================
+    function setIssueTimeRange(range) {
+      currentIssueTimeRange = range;
+      ['month', '3m', 'all'].forEach(function(b) {
+        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) btn.className = b === range ? "px-2.5 py-1 rounded text-xs font-bold bg-white text-[#662E8D] shadow-sm cursor-pointer" : "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
+      });
+      document.getElementById("issueStartDate").value = "";
+      document.getElementById("issueEndDate").value = "";
+      renderMonthlyIssues();
+    }
+
+    function onCustomIssueDateChange() {
+      ['month', '3m', 'all'].forEach(function(b) {
+        var btn = document.getElementById('btnIssue' + b.charAt(0).toUpperCase() + b.slice(1));
+        if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
+      });
+      currentIssueTimeRange = 'custom';
+      renderMonthlyIssues();
+    }
+
+    function renderMonthlyIssues() {
+      var tbody = document.getElementById("issuesTableBody");
+      tbody.innerHTML = "";
+      var now = new Date();
+      var currentYear = now.getFullYear();
+      var currentMonth = now.getMonth() + 1;
+      var startDate = null, endDate = null;
+
+      if (currentIssueTimeRange === 'month') {
+        startDate = new Date(currentYear, currentMonth - 1, 1);
+        endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+      } else if (currentIssueTimeRange === '3m') {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      } else if (currentIssueTimeRange === 'custom') {
+        var sVal = document.getElementById("issueStartDate").value;
+        var eVal = document.getElementById("issueEndDate").value;
+        if (sVal) startDate = new Date(sVal);
+        if (eVal) { endDate = new Date(eVal); endDate.setHours(23, 59, 59, 999); }
+      }
+
+      var issueList = [];
+      orders.forEach(function(o) {
+        if (Array.isArray(o.notes)) {
+          o.notes.forEach(function(n, index) {
+            if (n.indexOf("⚠️ [客戶問題]") !== -1 || n.indexOf("✅ [已解決]") !== -1) {
+              var dateMatch = n.match(/\[(\d{4}[\/-]\d{1,2}[\/-]\d{1,2}|\d{1,2}[\/-]\d{1,2})\]/);
+              var noteDateStr = dateMatch ? dateMatch[1] : "";
+              var inRange = true;
+
+              if (noteDateStr && (startDate || endDate)) {
+                var p = noteDateStr.split(/[\/-]/);
+                var noteDate = p.length === 3 ? new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10)) : new Date(currentYear, parseInt(p[0], 10) - 1, parseInt(p[1], 10));
+                if (startDate && noteDate < startDate) inRange = false;
+                if (endDate && noteDate > endDate) inRange = false;
+              }
+
+              if (inRange) {
+                var isSolved = n.indexOf("✅ [已解決]") !== -1 || n.indexOf("✅") !== -1;
+                var cleanIssueText = n.replace("⚠️ [客戶問題]", "").replace("✅ [已解決]", "").replace("📌 [待追蹤]", "").replace("✅", "").trim();
+                issueList.push({
+                  orderId: o.orderId,
+                  customer: o.customer,
+                  sales: o.sales,
+                  date: noteDateStr || "歷史紀錄",
+                  text: cleanIssueText,
+                  isSolved: isSolved,
+                  noteIndex: index
+                });
+              }
+            }
+          });
+        }
+      });
+
+      if (issueList.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">目前選擇時間區間內無客戶問題紀錄 🎉</td></tr>';
+        return;
+      }
+
+      issueList.forEach(function(issue) {
+        var tr = document.createElement("tr");
+        tr.className = "border-b hover:bg-purple-50/20 text-xs sm:text-sm " + (issue.isSolved ? "bg-slate-50/80" : "");
+        var chkHtml = '<input type="checkbox" ' + (issue.isSolved ? 'checked' : '') + ' onchange="toggleIssueSolvedStatus(\'' + issue.orderId + '\', ' + issue.noteIndex + ', this.checked)" class="w-4 h-4 text-[#662E8D] rounded border-slate-300 cursor-pointer">';
+        var textStyle = issue.isSolved ? "text-slate-700 bg-slate-100 p-2 rounded font-normal whitespace-pre-wrap" : "text-rose-700 bg-rose-50/80 p-2 rounded font-medium border border-rose-100 whitespace-pre-wrap";
+        var statusBadge = issue.isSolved ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">已解決 ✅</span>' : '<span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] font-bold animate-pulse">待處理 ⚠️</span>';
+
+        tr.innerHTML = 
+          '<td class="p-3 text-center">' + chkHtml + '</td>' +
+          '<td class="p-3 font-mono font-medium text-slate-600">' + issue.date + '</td>' +
+          '<td class="p-3 font-mono font-bold text-[#662E8D]">' + issue.orderId + '</td>' +
+          '<td class="p-3 font-bold text-slate-800">' + issue.customer + '</td>' +
+          '<td class="p-3"><div class="' + textStyle + ' mb-1">' + issue.text + '</div><div>' + statusBadge + '</div></td>' +
+          '<td class="p-3 text-slate-600">' + issue.sales + '</td>' +
+          '<td class="p-3 text-center"><button onclick="openOrderModal(\'' + issue.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-slate-600 cursor-pointer">檢視訂單</button></td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function toggleIssueSolvedStatus(orderId, noteIndex, isSolved) {
+      var order = orders.find(function(o) { return o.orderId === orderId; });
+      if (order && Array.isArray(order.notes) && order.notes[noteIndex] !== undefined) {
+        var originalNote = order.notes[noteIndex];
+        if (isSolved) {
+          order.notes[noteIndex] = originalNote.replace("⚠️ [客戶問題]", "✅ [已解決] ✅");
+          if (order.notes[noteIndex].indexOf("✅") === -1) order.notes[noteIndex] = "✅ [已解決] " + originalNote;
+        } else {
+          order.notes[noteIndex] = originalNote.replace("✅ [已解決]", "⚠️ [客戶問題]").replace("✅", "");
+        }
+
         renderOrders();
         renderMonthlyIssues();
 
@@ -1882,28 +2298,38 @@
             note: order.notes.join(NOTE_DELIMITER)
           })
         });
-
-        await new Promise(function(res) { setTimeout(res, 1000); });
-        fetchOrdersFromSheet();
       }
     }
 
-    async function updateOrderField(orderId, field, value) {
-      var order = orders.find(function(o) { return o.orderId === orderId; });
-      if (order) {
-        order[field] = value;
+    function exportIssuesCsv() {
+      var rows = [["狀態", "紀錄日期", "訂單單號", "客戶名稱", "客戶問題與處理紀錄", "負責業務"]];
+      var tableRows = document.querySelectorAll("#issuesTableBody tr");
+      tableRows.forEach(function(r) {
+        var cols = r.querySelectorAll("td");
+        if (cols.length >= 6) {
+          var chk = cols[0].querySelector("input[type='checkbox']");
+          rows.push([
+            chk && chk.checked ? "已解決" : "待處理",
+            cols[1].innerText.trim(),
+            cols[2].innerText.trim(),
+            cols[3].innerText.trim(),
+            cols[4].innerText.trim().replace(/\n/g, " "),
+            cols[5].innerText.trim()
+          ]);
+        }
+      });
 
-        var payload = { action: "update", orderId: orderId };
-        payload[field] = value;
-
-        await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-      }
+      var csvContent = "\uFEFF" + rows.map(e => e.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(",")).join("\n");
+      var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      var link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "客戶問題與客訴彙總報表_" + new Date().toISOString().split('T')[0] + ".csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
+    // ==================== 圖表統計 ====================
     function destroyChart(chartId) {
       if (chartInstances[chartId]) {
         try { chartInstances[chartId].destroy(); } catch(e) {}
@@ -1913,27 +2339,17 @@
 
     function setChartTimeFilter(range) {
       currentChartTimeRange = range;
-      var btns = ['1m', '3m', '6m', '1y', 'all'];
-      btns.forEach(function(b) {
+      ['1m', '3m', '6m', '1y', 'all'].forEach(function(b) {
         var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
-        if (btn) {
-          if (b === range) {
-            btn.className = "px-2.5 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer";
-          } else {
-            btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
-          }
-        }
+        if (btn) btn.className = b === range ? "px-2.5 py-1 rounded text-xs font-medium bg-white text-[#662E8D] font-bold shadow-sm transition cursor-pointer" : "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white transition cursor-pointer";
       });
-
       document.getElementById("chartStartDate").value = "";
       document.getElementById("chartEndDate").value = "";
-
       safeRenderCharts();
     }
 
     function onCustomChartDateChange() {
-      var btns = ['1m', '3m', '6m', '1y', 'all'];
-      btns.forEach(function(b) {
+      ['1m', '3m', '6m', '1y', 'all'].forEach(function(b) {
         var btn = document.getElementById('btnTime' + b.charAt(0).toUpperCase() + b.slice(1));
         if (btn) btn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-600 hover:bg-white cursor-pointer";
       });
@@ -1942,42 +2358,27 @@
     }
 
     function safeRenderCharts() {
-      if (typeof Chart === 'undefined') {
-        console.warn("Chart.js 未載入，跳過繪圖。");
-        return;
-      }
-      if (!orders || orders.length === 0) return;
+      if (typeof Chart === 'undefined' || !orders || orders.length === 0) return;
 
       var now = new Date();
-      var startDate = null;
-      var endDate = null;
+      var startDate = null, endDate = null;
 
-      if (currentChartTimeRange === '1m') {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      } else if (currentChartTimeRange === '3m') {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-      } else if (currentChartTimeRange === '6m') {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-      } else if (currentChartTimeRange === '1y') {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      } else if (currentChartTimeRange === 'custom') {
+      if (currentChartTimeRange === '1m') startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      else if (currentChartTimeRange === '3m') startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      else if (currentChartTimeRange === '6m') startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      else if (currentChartTimeRange === '1y') startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      else if (currentChartTimeRange === 'custom') {
         var sVal = document.getElementById("chartStartDate").value;
         var eVal = document.getElementById("chartEndDate").value;
         if (sVal) startDate = new Date(sVal);
-        if (eVal) {
-          endDate = new Date(eVal);
-          endDate.setHours(23, 59, 59, 999);
-        }
+        if (eVal) { endDate = new Date(eVal); endDate.setHours(23, 59, 59, 999); }
       }
 
       var filteredOrders = orders.filter(function(o) {
         if (!startDate && !endDate) return true;
         if (!o.shipDate || o.shipDate === "-") return false;
-
-        var cleanStr = o.shipDate.replace(/\//g, "-").trim();
-        var parts = cleanStr.split("-");
+        var parts = o.shipDate.replace(/\//g, "-").trim().split("-");
         if (parts.length < 2) return false;
-
         var oDate = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2] ? parseInt(parts[2], 10) : 1);
         if (startDate && oDate < startDate) return false;
         if (endDate && oDate > endDate) return false;
@@ -1985,14 +2386,9 @@
       });
 
       try {
-        var targetStatuses = ["待處理", "出貨中", "出貨完成"];
         var statusCounts = { "待處理": 0, "出貨中": 0, "出貨完成": 0 };
-        
         filteredOrders.forEach(function(o) {
-          var st = o.status || "待處理";
-          if (targetStatuses.indexOf(st) !== -1) {
-            statusCounts[st] += 1;
-          }
+          if (["待處理", "出貨中", "出貨完成"].indexOf(o.status) !== -1) statusCounts[o.status] += 1;
         });
 
         destroyChart('chartStatusPie');
@@ -2013,7 +2409,6 @@
 
         var payCounts = { "未付款": 0, "已付訂金": 0, "已結清": 0 };
         var invCounts = { "未開發票": 0, "已開發票": 0 };
-
         filteredOrders.forEach(function(o) {
           payCounts[o.paymentStatus] = (payCounts[o.paymentStatus] || 0) + 1;
           invCounts[o.invoiceStatus] = (invCounts[o.invoiceStatus] || 0) + 1;
@@ -2042,15 +2437,11 @@
 
         var monthlySales = {};
         filteredOrders.forEach(function(o) {
-          var monthKey = "未歸類";
-          if (o.shipDate && o.shipDate.indexOf("-") !== -1) {
-            monthKey = o.shipDate.substring(0, 7);
-          }
+          var monthKey = o.shipDate && o.shipDate.indexOf("-") !== -1 ? o.shipDate.substring(0, 7) : "未歸類";
           monthlySales[monthKey] = (monthlySales[monthKey] || 0) + o.amount;
         });
 
         var sortedMonths = Object.keys(monthlySales).sort();
-
         destroyChart('chartMonthlyBar');
         var canvasMonthly = document.getElementById('chartMonthlyBar');
         if (canvasMonthly) {
@@ -2060,16 +2451,12 @@
               labels: sortedMonths,
               datasets: [{
                 label: '月度銷售金額 (NT$)',
-                data: sortedMonths.map(function(m) { return monthlySales[m]; }),
+                data: sortedMonths.map(m => monthlySales[m]),
                 backgroundColor: '#662E8D',
                 borderRadius: 6
               }]
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { y: { beginAtZero: true } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
           });
         }
 
@@ -2078,8 +2465,7 @@
           var s = o.sales || "未知業務";
           salesPerf[s] = (salesPerf[s] || 0) + o.amount;
         });
-
-        var sortedSales = Object.keys(salesPerf).sort(function(a,b) { return salesPerf[b] - salesPerf[a]; });
+        var sortedSales = Object.keys(salesPerf).sort((a,b)=>salesPerf[b]-salesPerf[a]);
 
         destroyChart('chartSalesRankBar');
         var canvasSales = document.getElementById('chartSalesRankBar');
@@ -2091,34 +2477,24 @@
               labels: sortedSales,
               datasets: [{
                 label: '銷售總額 (NT$)',
-                data: sortedSales.map(function(s) { return salesPerf[s]; }),
+                data: sortedSales.map(s => salesPerf[s]),
                 backgroundColor: '#06b6d4',
                 borderRadius: 6
               }]
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { x: { beginAtZero: true } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } } }
           });
         }
 
-        var hwCounts = {};
-        var hwWarrantyCounts = {};
-
+        var hwCounts = {}, hwWarrantyCounts = {};
         filteredOrders.forEach(function(o) {
           var model = parseHardwareModel(o.hardware);
           var qty = parseHardwareQty(o.hardware);
-
           hwCounts[model] = (hwCounts[model] || 0) + qty;
-          if (o.hwWarrantEnd) {
-            hwWarrantyCounts[model] = (hwWarrantyCounts[model] || 0) + qty;
-          }
+          if (o.hwWarrantEnd) hwWarrantyCounts[model] = (hwWarrantyCounts[model] || 0) + qty;
         });
 
         var hwModels = Object.keys(hwCounts);
-
         destroyChart('chartHardwareBar');
         var canvasHw = document.getElementById('chartHardwareBar');
         if (canvasHw) {
@@ -2127,33 +2503,21 @@
             data: {
               labels: hwModels,
               datasets: [
-                {
-                  label: '出貨總台數 (實際數量)',
-                  data: hwModels.map(function(m) { return hwCounts[m]; }),
-                  backgroundColor: '#8b5cf6',
-                  borderRadius: 6
-                },
-                {
-                  label: '登記保固台數',
-                  data: hwModels.map(function(m) { return hwWarrantyCounts[m] || 0; }),
-                  backgroundColor: '#f59e0b',
-                  borderRadius: 6
-                }
+                { label: '出貨總台數 (實際數量)', data: hwModels.map(m => hwCounts[m]), backgroundColor: '#8b5cf6', borderRadius: 6 },
+                { label: '登記保固台數', data: hwModels.map(m => hwWarrantyCounts[m] || 0), backgroundColor: '#f59e0b', borderRadius: 6 }
               ]
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
           });
         }
       } catch (err) {
-        console.error("繪製圖表防爆捕捉排除錯誤:", err);
+        console.error("圖表錯誤:", err);
       }
     }
 
+    // 啟動載入
     fetchOrdersFromSheet();
+    fetchPocFromSheet();
   </script>
 </body>
 </html>
