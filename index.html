@@ -34,8 +34,80 @@
       position: sticky;
       top: 0;
       z-index: 20;
-      background-color: #f1f5f9; /* Tailwind slate-100 */
+      background-color: #f1f5f9;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    /* 授權書 A4 紙張與列印專用樣式 */
+    .cert-paper {
+      font-family: "DFKai-SB", "BiauKai", "標楷體", "Noto Serif TC", serif;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 18mm 22mm;
+      background: white;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      margin: 0 auto;
+      color: #000000;
+      line-height: 1.75;
+    }
+    .cert-editable {
+      border-bottom: 1.5px dashed #9333ea;
+      background-color: #faf5ff;
+      padding: 0 4px;
+      border-radius: 3px;
+      transition: all 0.2s;
+      cursor: text;
+    }
+    .cert-editable:hover, .cert-editable:focus {
+      background-color: #f3e8ff;
+      outline: none;
+      border-bottom: 1.5px solid #662E8D;
+    }
+    /* 印章白底自動透明化，讓印章自然蓋在文字上 */
+    .stamp-overlay {
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #certPrintArea, #certPrintArea * {
+        visibility: visible;
+      }
+      #certModal {
+        position: static !important;
+        background: none !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+      #certModalInner {
+        box-shadow: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      #certPrintArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        padding: 12mm 18mm !important;
+        margin: 0 !important;
+      }
+      .cert-editable {
+        border-bottom: none !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
     }
   </style>
 </head>
@@ -54,7 +126,7 @@
           <h1 class="text-base sm:text-xl font-bold tracking-wide text-[#662E8D]">AISO 訂單管理系統</h1>
         </div>
         
-        <!-- 主頁面頁籤切換 (含新增的 POC 測試機分頁) -->
+        <!-- 主頁面頁籤切換 -->
         <nav class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs sm:text-sm flex-wrap gap-1">
           <button id="tabBtnOrders" onclick="switchMainTab('orders')" class="px-3 sm:px-4 py-1.5 rounded-md font-bold bg-[#662E8D] text-white shadow-sm transition cursor-pointer">
             📋 訂單列表
@@ -163,9 +235,8 @@
       </div>
     </section>
 
-    <!-- ==================== 頁籤 2: 🧪 POC 借測追蹤 (新功能) ==================== -->
+    <!-- ==================== 頁籤 2: 🧪 POC 借測追蹤 ==================== -->
     <section id="sectionPoc" class="hidden space-y-4 sm:space-y-6">
-      <!-- POC KPI 統計面板 -->
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
         <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between">
           <div>
@@ -197,7 +268,6 @@
         </div>
       </div>
 
-      <!-- POC 篩選與搜尋列 -->
       <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3 sm:gap-4 items-stretch md:items-center justify-between border border-slate-100">
         <div class="flex flex-wrap gap-2 sm:gap-4 items-center">
           <div class="flex items-center gap-1 text-xs sm:text-sm">
@@ -221,7 +291,6 @@
         </div>
       </div>
 
-      <!-- POC 表格清單 -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-100 sticky-table-container">
         <table class="w-full text-left border-collapse min-w-[1200px]">
           <thead class="sticky-table-header text-xs sm:text-sm">
@@ -412,7 +481,7 @@
           <img src="https://lh3.googleusercontent.com/d/1GxH8-A-ZnaT2SBHGiDugEa-27-ja0O7x" alt="P醬 Avatar" class="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow">
           <div>
             <h3 class="font-bold text-xs sm:text-sm">P醬 (AISO 訂單 & POC AI Agent)</h3>
-            <p class="text-[9px] sm:text-[10px] text-purple-200">雲端 Gemini 語言模型極速診斷</p>
+            <p class="text-[9px] sm:text-[10px] text-purple-200">Gemini 4 Hydrogen 極速診斷中</p>
           </div>
         </div>
         <button onclick="toggleAiPanel()" class="text-white hover:text-slate-200 font-bold text-base sm:text-lg px-2 cursor-pointer">✕</button>
@@ -432,6 +501,109 @@
       <div class="p-2.5 bg-white border-t flex gap-2">
         <input type="text" id="aiInput" onkeydown="if(event.key==='Enter') sendAiMessage()" placeholder="詢問 P醬 (按 Enter 發送)..." class="flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#662E8D]">
         <button onclick="sendAiMessage()" id="btnAiSend" class="bg-[#662E8D] hover:bg-[#522373] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">發送</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📜 AI 工具啟用暨使用證明書 (預設載入您的 Google Drive 公司印章 + 第一段產品名可自由編輯) -->
+  <div id="certModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div id="certModalInner" class="bg-slate-200 rounded-xl max-w-5xl w-full p-3 sm:p-5 shadow-2xl max-h-[95vh] overflow-y-auto flex flex-col">
+      <!-- 頂部操作列 (列印時自動隱藏) -->
+      <div class="no-print bg-white p-3 rounded-lg shadow-sm mb-4 flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-[#662E8D] flex items-center gap-1.5">
+            <span>📜</span> AI 工具啟用暨使用證明書（可直接點擊虛線文字微調）
+          </h2>
+          <p class="text-[11px] text-slate-500">已自動套用客戶名稱、民國年保固起訖與您的預設公司章，確認無誤即可直接列印或另存 PDF。</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- 印章更換 / 恢復預設控制 -->
+          <input type="file" id="stampFileInput" accept="image/*" onchange="handleStampUpload(event)" class="hidden">
+          <button onclick="document.getElementById('stampFileInput').click()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1" title="若需替換其他印章圖檔可點此上傳">
+            <span>💮</span> 更換印章圖檔
+          </button>
+          <button id="btnResetStamp" onclick="resetDefaultStamp()" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-2 rounded-lg text-xs transition cursor-pointer" title="恢復為預設 Google Drive 公司章">
+            恢復預設印章
+          </button>
+
+          <button onclick="window.print()" class="bg-[#662E8D] hover:bg-[#522373] text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-bold shadow transition cursor-pointer flex items-center gap-1.5">
+            <span>🖨️</span> 列印 / 另存 PDF
+          </button>
+          <button onclick="toggleModal('certModal', false)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition cursor-pointer">
+            關閉
+          </button>
+        </div>
+      </div>
+
+      <!-- A4 正式證明書紙張內容區 -->
+      <div class="overflow-x-auto pb-4">
+        <div id="certPrintArea" class="cert-paper relative">
+          <!-- 主標題 -->
+          <h1 class="text-center text-3xl font-bold tracking-[0.15em] mb-8 text-black">
+            AI 工具啟用暨使用證明書
+          </h1>
+
+          <!-- 證明書正文 -->
+          <div class="text-[16.5px] space-y-4 text-justify leading-relaxed">
+            <p class="indent-8">
+              茲證明 <span id="certCustName" contenteditable="true" class="cert-editable font-bold text-lg">雅特企業有限公司</span> 已導入昕力資訊股份有限公司提供之「<span id="certIntroProductName" contenteditable="true" class="cert-editable font-bold">AI 知識助理平台(地端版)</span>」，並完成 AI 工具之建置及啟用。
+            </p>
+
+            <p class="indent-8">
+              啟用期間<span id="certPeriodText" contenteditable="true" class="cert-editable font-bold">自民國 115 年 10 月 16 日起至民國 116 年 10 月 15 日止</span>。
+            </p>
+
+            <!-- 一、導入工具名稱 -->
+            <div class="pt-2">
+              <h2 class="font-bold text-lg mb-1">一、導入工具名稱</h2>
+              <p class="pl-6">
+                <span id="certToolDetail" contenteditable="true" class="cert-editable">AI 知識助理平台(地端版)：Orient AI 一體機</span>
+              </p>
+            </div>
+
+            <!-- 二、AI 工具主要功能 -->
+            <div class="pt-1">
+              <h2 class="font-bold text-lg mb-1">二、AI 工具主要功能</h2>
+              <div id="certFeaturesList" contenteditable="true" class="cert-editable pl-6 space-y-1 text-[15.5px]">
+                <p>1. AI Chat：提供 AI 對話介面，支援企業知識問答與 AI 助理服務。</p>
+                <p>2. RBAC 權限管理：提供使用者、角色與權限管理，支援企業控管及安全存取。</p>
+                <p>3. LLM Router：支援地端／雲端模型切換。</p>
+                <p>4. RAG 知識庫：支援文件上傳、RAG 知識問答與知識檢索。</p>
+                <p>5. 知識庫管理：提供知識庫建立、文件管理與知識庫維護。</p>
+                <p>6. Prompt 管理：提供 Prompt 建立、設定、版本管理與維護。</p>
+                <p>7. 稽核 Log：提供操作紀錄、AI 對話紀錄及使用歷程追蹤，支援稽核需求。</p>
+                <p>8. 管理儀表板：提供模型使用量、Token 用量、AI 對話紀錄及平台使用統計分析。</p>
+              </div>
+            </div>
+
+            <!-- 三、使用單位／帳號 -->
+            <div class="pt-1">
+              <h2 class="font-bold text-lg mb-1">三、使用單位／帳號</h2>
+              <p id="certAccountText" contenteditable="true" class="cert-editable pl-6">
+                預設提供一組管理帳號 。後續 可以自行設置創建多組使用者帳號。
+              </p>
+            </div>
+
+            <p class="indent-8 pt-4">
+              茲證明上述 AI 工具已完成，特立此證明。
+            </p>
+          </div>
+
+          <!-- 落款與公司印章疊加區 -->
+          <div class="mt-14 pt-6 flex flex-col items-end relative">
+            <div class="relative text-center space-y-6 pr-6">
+              <!-- 公司大小章圖片疊加位置 (預設使用您的 Google Drive 印章) -->
+              <img id="certStampImg" src="https://lh3.googleusercontent.com/d/19UqbCsBun8FwyrG7bcoFUG_qr-TvAuTk" alt="公司印章" class="stamp-overlay absolute -top-12 right-2 w-48 h-auto z-10">
+              
+              <p class="font-bold text-xl tracking-[0.25em] relative z-0">
+                昕 力 資 訊 股 份 有 限 公 司
+              </p>
+              <p class="text-lg font-bold tracking-[0.2em] relative z-0">
+                <span id="certSignDate" contenteditable="true" class="cert-editable">中 華 民 國 115 年 10 月 15 日</span>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -762,7 +934,7 @@
     </div>
   </div>
 
-  <!-- 🧪 建立 / 編輯 POC 測試機 Modal (新功能) -->
+  <!-- 🧪 建立 / 編輯 POC 測試機 Modal -->
   <div id="pocModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div class="bg-white rounded-xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <h2 id="pocModalTitle" class="text-base sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800">建立 POC 測試機借測紀錄</h2>
@@ -859,7 +1031,7 @@
       <h3 class="text-base sm:text-lg font-bold mb-1 text-slate-800">新增備註紀錄</h3>
       <p id="noteTargetOrder" class="text-xs font-mono text-[#662E8D] mb-3 sm:mb-4 font-bold"></p>
       <input type="hidden" id="currentOrderId">
-      <input type="hidden" id="currentNoteTargetType" value="order"> <!-- 'order' 或 'poc' -->
+      <input type="hidden" id="currentNoteTargetType" value="order">
       
       <textarea id="newNoteText" rows="3" placeholder="請輸入進度說明、測試反饋或注意事項..." class="w-full border rounded-lg p-2.5 text-xs sm:text-sm mb-3 outline-none focus:border-[#662E8D]"></textarea>
       
@@ -888,6 +1060,7 @@
 
   <script>
     var API_URL = "https://script.google.com/macros/s/AKfycbwnkgcv6qLn14osE6Z1-xNEB-OX9ej6iaogKo_0msv2WTdzGJ_urm-iA8-OzhDjlupPjw/exec";
+    var DEFAULT_STAMP_URL = "https://lh3.googleusercontent.com/d/19UqbCsBun8FwyrG7bcoFUG_qr-TvAuTk";
     var STATUS_OPTIONS = ["待處理", "已領貨", "出貨中", "出貨完成", "已安裝", "到府維修", "換貨處理中", "重新出貨", "退貨處理"];
     var POC_STATUS_OPTIONS = ["待出庫", "測試中", "申請延長中", "已歸還", "轉正式訂單"];
     var NOTE_DELIMITER = "|||";
@@ -900,6 +1073,95 @@
     var currentIssueTimeRange = 'month';
     var currentTodoTab = 'pending';
     var currentMainTab = 'orders';
+
+    // ==================== 印章圖片管理 (預設您的 Google Drive 印章) ====================
+    function loadSavedStamp() {
+      var savedData = localStorage.getItem("tpi_company_stamp_base64");
+      var imgEl = document.getElementById("certStampImg");
+      var resetBtn = document.getElementById("btnResetStamp");
+      if (imgEl) {
+        if (savedData) {
+          imgEl.src = savedData;
+          if (resetBtn) resetBtn.classList.remove("hidden");
+        } else {
+          imgEl.src = DEFAULT_STAMP_URL;
+          if (resetBtn) resetBtn.classList.add("hidden");
+        }
+        imgEl.classList.remove("hidden");
+      }
+    }
+
+    function handleStampUpload(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var base64 = e.target.result;
+        localStorage.setItem("tpi_company_stamp_base64", base64);
+        loadSavedStamp();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetDefaultStamp() {
+      localStorage.removeItem("tpi_company_stamp_base64");
+      loadSavedStamp();
+    }
+
+    // ==================== 西元年轉民國年與授權書生成器 ====================
+    function toRocDateText(dateStr) {
+      if (!dateStr || dateStr === "-") return "";
+      var parts = String(dateStr).replace(/\//g, "-").trim().split("-");
+      if (parts.length < 3) return dateStr;
+      var year = parseInt(parts[0], 10);
+      var month = parseInt(parts[1], 10);
+      var day = parseInt(parts[2], 10);
+      if (isNaN(year)) return dateStr;
+      var rocYear = year > 1911 ? year - 1911 : year;
+      return "民國 " + rocYear + " 年 " + month + " 月 " + day + " 日";
+    }
+
+    function addOneYearMinusOneDay(dateStr) {
+      var parts = String(dateStr).replace(/\//g, "-").trim().split("-");
+      if (parts.length < 3) return "";
+      var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      d.setFullYear(d.getFullYear() + 1);
+      d.setDate(d.getDate() - 1);
+      var y = d.getFullYear();
+      var m = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
+      return y + "-" + m + "-" + day;
+    }
+
+    function openCertificateModal(orderId) {
+      var o = orders.find(function(item) { return item.orderId === orderId; });
+      if (!o) return;
+
+      var custName = o.customer || "雅特企業有限公司";
+      document.getElementById("certCustName").innerText = custName;
+
+      // 第一段產品名稱預設值（可點擊直接修改）
+      document.getElementById("certIntroProductName").innerText = "AI 知識助理平台(地端版)";
+
+      // 一、導入工具名稱預設值
+      document.getElementById("certToolDetail").innerText = "AI 知識助理平台(地端版)：Orient AI 一體機";
+
+      // 啟用有效期間：優先抓取「軟體保固開始 ~ 軟體保固結束」，若無則用預計出貨日推算一年
+      var startStr = o.swWarrantStart || (o.shipDate !== "-" ? o.shipDate : new Date().toISOString().split('T')[0]);
+      var endStr = o.swWarrantEnd || addOneYearMinusOneDay(startStr);
+
+      var rocStart = toRocDateText(startStr);
+      var rocEnd = toRocDateText(endStr);
+      document.getElementById("certPeriodText").innerText = "自" + rocStart + "起至" + rocEnd + "止";
+
+      // 落款日期：帶入預計出貨日（若無則當天）
+      var signBaseDate = (o.shipDate && o.shipDate !== "-") ? o.shipDate : new Date().toISOString().split('T')[0];
+      var rocSign = toRocDateText(signBaseDate).replace("民國 ", "中 華 民 國 ");
+      document.getElementById("certSignDate").innerText = rocSign;
+
+      loadSavedStamp();
+      toggleModal("certModal", true);
+    }
 
     // 收起 / 叫出 P醬
     function hideP醬() {
@@ -1165,7 +1427,7 @@
       document.body.appendChild(script);
     }
 
-    // ==================== POC 資料處理 (新功能) ====================
+    // ==================== POC 資料處理 ====================
     window.handlePocSheetData = function(data) {
       var refreshIcon = document.getElementById("pocRefreshIcon");
       if (refreshIcon) refreshIcon.classList.remove("animate-spin");
@@ -1264,7 +1526,6 @@
         var tr = document.createElement("tr");
         tr.className = "border-b border-slate-100 hover:bg-slate-50/80 text-xs sm:text-sm";
 
-        // 倒數到期計算
         var deadlineBadge = "";
         if (p.endDate && p.endDate !== "-" && p.status !== "已歸還" && p.status !== "轉正式訂單") {
           var pDate = new Date(p.endDate.replace(/\//g, "-"));
@@ -1336,7 +1597,6 @@
       var today = new Date().toISOString().split('T')[0];
       document.getElementById("pocStartDate").value = today;
 
-      // 預設預計結束日為 14 天後
       var defaultEnd = new Date();
       defaultEnd.setDate(defaultEnd.getDate() + 14);
       document.getElementById("pocEndDate").value = defaultEnd.toISOString().split('T')[0];
@@ -1465,7 +1725,6 @@
       }
     }
 
-    // 將 POC 借測轉為正式訂單
     function convertPocToOfficialOrder(pocId) {
       var p = pocList.find(function(item) { return item.pocId === pocId; });
       if (!p) return;
@@ -1473,14 +1732,12 @@
       switchMainTab('orders');
       openOrderModal(null);
 
-      // 自動帶入 POC 資料到訂單彈窗
       document.getElementById("custName").value = p.customer;
       document.getElementById("salesName").value = p.sales;
       document.getElementById("hwInfo").value = p.hwModel + (p.sn ? " / " + p.sn : "");
       document.getElementById("initialNote").value = "由 POC 借測單 " + p.pocId + " 成功轉為正式採購訂單。";
     }
 
-    // 依據目前主頁籤決定頂部「+ 新增」按鈕行為
     function handleMainAddAction() {
       if (currentMainTab === 'poc') {
         openPocModal(null);
@@ -1489,7 +1746,6 @@
       }
     }
 
-    // 主頁籤切換
     function switchMainTab(tab) {
       currentMainTab = tab;
       var btnOrders = document.getElementById("tabBtnOrders");
@@ -1775,6 +2031,7 @@
             '<div class="flex flex-col gap-1">' +
               '<button onclick="openOrderModal(\'' + o.orderId + '\')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border cursor-pointer">✏️ 編輯</button>' +
               '<button onclick="openNoteModalForOrder(\'' + o.orderId + '\')" class="text-xs bg-purple-50 text-[#662E8D] hover:bg-purple-100 px-2 py-1 rounded border border-purple-200 cursor-pointer">+ 備註</button>' +
+              '<button onclick="openCertificateModal(\'' + o.orderId + '\')" class="text-xs bg-amber-50 text-amber-800 hover:bg-amber-100 px-2 py-1 rounded border border-amber-300 font-bold cursor-pointer" title="預覽並列印授權證明書">📜 授權書</button>' +
               '<div class="flex flex-wrap gap-1 mt-0.5">' + fileLinksHtml + '</div>' +
             '</div>' +
           '</td>';
