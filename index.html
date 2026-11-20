@@ -49,6 +49,8 @@
       margin: 0 auto;
       color: #000000;
       line-height: 1.75;
+      position: relative;
+      overflow: hidden;
     }
     .cert-editable {
       border-bottom: 1.5px dashed #9333ea;
@@ -76,8 +78,25 @@
       mix-blend-mode: multiply;
       pointer-events: none;
     }
+    /* 授權書背景浮水印樣式（針對已淡化之 CIS A4 滿版浮水印最佳化） */
+    .cert-watermark {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0.85;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
 
     @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       body * {
         visibility: hidden;
       }
@@ -107,6 +126,10 @@
         box-shadow: none !important;
         padding: 12mm 18mm !important;
         margin: 0 !important;
+      }
+      .cert-watermark {
+        display: block !important;
+        opacity: 0.85 !important;
       }
       .cert-editable {
         border-bottom: none !important;
@@ -513,7 +536,7 @@
     </div>
   </div>
 
-  <!-- 📜 AI 工具啟用暨使用證明書 (強制統一字體大小 + 純文字貼上保護) -->
+  <!-- 📜 AI 工具啟用暨使用證明書 (含 CIS 內嵌背景浮水印 + 強制統一字體大小 + 純文字貼上保護) -->
   <div id="certModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div id="certModalInner" class="bg-slate-200 rounded-xl max-w-5xl w-full p-3 sm:p-5 shadow-2xl max-h-[95vh] overflow-y-auto flex flex-col">
       <!-- 頂部操作列 (列印時自動隱藏) -->
@@ -522,9 +545,18 @@
           <h2 class="text-base sm:text-lg font-bold text-[#662E8D] flex items-center gap-1.5">
             <span>📜</span> AI 工具啟用暨使用證明書（可直接點擊虛線文字微調）
           </h2>
-          <p class="text-[11px] text-slate-500">已啟用「字體大小自動鎖定」，修改或貼上任何文字都會保持完全一致的字級與版型。</p>
+          <p class="text-[11px] text-slate-500">已內嵌 CIS 滿版斜向浮水印（零外部網路依賴，列印必出），確認無誤後即可列印或另存 PDF。</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <!-- 浮水印更換 / 恢復預設控制 -->
+          <input type="file" id="watermarkFileInput" accept="image/*" onchange="handleWatermarkUpload(event)" class="hidden">
+          <button onclick="document.getElementById('watermarkFileInput').click()" class="bg-purple-50 hover:bg-purple-100 text-[#662E8D] border border-purple-300 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1" title="若需替換其他版本浮水印圖檔可點此上傳">
+            <span>🖼️</span> 更換浮水印
+          </button>
+          <button id="btnResetWatermark" onclick="resetDefaultWatermark()" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-2 rounded-lg text-xs transition cursor-pointer" title="恢復為預設 CIS 浮水印">
+            恢復預設浮水印
+          </button>
+
           <!-- 印章更換 / 恢復預設控制 -->
           <input type="file" id="stampFileInput" accept="image/*" onchange="handleStampUpload(event)" class="hidden">
           <button onclick="document.getElementById('stampFileInput').click()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1" title="若需替換其他印章圖檔可點此上傳">
@@ -546,13 +578,16 @@
       <!-- A4 正式證明書紙張內容區 -->
       <div class="overflow-x-auto pb-4">
         <div id="certPrintArea" class="cert-paper relative">
+          <!-- 背景居中斜向 CIS 浮水印 (內嵌高解析 Data URL，列印時 100% 顯示) -->
+          <img id="certWatermarkImg" alt="背景浮水印" class="cert-watermark">
+
           <!-- 主標題 -->
-          <h1 class="text-center text-3xl font-bold tracking-[0.15em] mb-8 text-black">
+          <h1 class="text-center text-3xl font-bold tracking-[0.15em] mb-8 text-black relative z-10">
             AI 工具啟用暨使用證明書
           </h1>
 
-          <!-- 證明書正文 (統一為 16.5px) -->
-          <div class="text-[16.5px] space-y-4 text-justify leading-relaxed">
+          <!-- 證明書正文 (統一為 16.5px，置於浮水印上方 z-10) -->
+          <div class="text-[16.5px] space-y-4 text-justify leading-relaxed relative z-10">
             <p class="indent-8">
               茲證明 <span id="certCustName" contenteditable="true" class="cert-editable font-bold">雅特企業有限公司</span> 已導入昕力資訊股份有限公司提供之「<span id="certIntroProductName" contenteditable="true" class="cert-editable font-bold">AI 知識助理平台(地端版)</span>」，並完成 AI 工具之建置及啟用。
             </p>
@@ -598,15 +633,15 @@
           </div>
 
           <!-- 落款與公司印章疊加區 -->
-          <div class="mt-14 pt-6 flex flex-col items-end relative">
+          <div class="mt-14 pt-6 flex flex-col items-end relative z-10">
             <div class="relative text-center space-y-6 pr-6">
               <!-- 公司大小章圖片疊加位置 -->
-              <img id="certStampImg" src="https://lh3.googleusercontent.com/d/19UqbCsBun8FwyrG7bcoFUG_qr-TvAuTk" alt="公司印章" class="stamp-overlay absolute -top-12 right-2 w-48 h-auto z-10">
+              <img id="certStampImg" src="https://lh3.googleusercontent.com/d/19UqbCsBun8FwyrG7bcoFUG_qr-TvAuTk" alt="公司印章" class="stamp-overlay absolute -top-12 right-2 w-48 h-auto z-20">
               
-              <p class="font-bold text-xl tracking-[0.25em] relative z-0">
+              <p class="font-bold text-xl tracking-[0.25em] relative z-10">
                 昕 力 資 訊 股 份 有 限 公 司
               </p>
-              <p class="text-lg font-bold tracking-[0.2em] relative z-0">
+              <p class="text-lg font-bold tracking-[0.2em] relative z-10">
                 <span id="certSignDate" contenteditable="true" class="cert-editable">中 華 民 國 115 年 10 月 15 日</span>
               </p>
             </div>
@@ -1082,8 +1117,57 @@
     var currentTodoTab = 'pending';
     var currentMainTab = 'orders';
 
+    // ==================== 內嵌 CIS 官方浮水印 (依上傳原圖比例 1:1 還原，零網路延遲) ====================
+    var DEFAULT_CIS_WATERMARK_SVG = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414">',
+      '  <rect width="1000" height="1414" fill="none"/>',
+      '  <g transform="translate(500, 707) rotate(-45) translate(-420, -10)">',
+      '    <!-- TPI 左側斜切幾何 Logo -->',
+      '    <path d="M 0,-36 L 160,-36 L 122,-4 L 98,-4 L 98,64 C 98,74 90,82 80,82 L 58,82 L 58,-4 L 0,-4 Z" fill="#E3E3E3"/>',
+      '    <path d="M 118,8 C 118,-14 140,-34 166,-36 L 166,18 C 142,20 118,28 118,8 Z" fill="#EAEAEA"/>',
+      '    <path d="M 118,32 C 138,24 166,24 166,24 L 166,82 L 136,82 C 124,82 118,74 118,62 Z" fill="#E3E3E3"/>',
+      '    <!-- 昕力資訊 CIS 標準字 -->',
+      '    <text x="205" y="56" font-family="\'Microsoft JhengHei\', \'PingFang TC\', \'Noto Sans TC\', sans-serif" font-size="112" font-weight="800" letter-spacing="28" fill="#E5E5E5">昕力資訊</text>',
+      '  </g>',
+      '</svg>'
+    ].join('');
+
+    var DEFAULT_WATERMARK_URL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(DEFAULT_CIS_WATERMARK_SVG);
+
+    function loadSavedWatermark() {
+      var savedWm = localStorage.getItem("tpi_cis_watermark_base64");
+      var imgEl = document.getElementById("certWatermarkImg");
+      var resetBtn = document.getElementById("btnResetWatermark");
+      if (imgEl) {
+        if (savedWm) {
+          imgEl.src = savedWm;
+          if (resetBtn) resetBtn.classList.remove("hidden");
+        } else {
+          imgEl.src = DEFAULT_WATERMARK_URL;
+          if (resetBtn) resetBtn.classList.add("hidden");
+        }
+      }
+    }
+
+    function handleWatermarkUpload(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        localStorage.setItem("tpi_cis_watermark_base64", e.target.result);
+        loadSavedWatermark();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetDefaultWatermark() {
+      localStorage.removeItem("tpi_cis_watermark_base64");
+      loadSavedWatermark();
+    }
+
     // ==================== 純文字貼上保護 (防止貼上時字體大小跑掉) ====================
     document.addEventListener("DOMContentLoaded", function() {
+      loadSavedWatermark();
       var editables = document.querySelectorAll(".cert-editable");
       editables.forEach(function(el) {
         el.addEventListener("paste", function(e) {
@@ -1179,6 +1263,7 @@
       var rocSign = toRocDateText(signBaseDate).replace("民國 ", "中 華 民 國 ");
       document.getElementById("certSignDate").innerText = rocSign;
 
+      loadSavedWatermark();
       loadSavedStamp();
       toggleModal("certModal", true);
     }
