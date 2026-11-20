@@ -58,8 +58,16 @@
       transition: all 0.2s;
       cursor: text;
     }
+    /* 強制鎖定可編輯區塊內的所有字體大小、字型與行高，防止編輯或貼上時大小不一 */
+    .cert-editable, .cert-editable * {
+      font-family: "DFKai-SB", "BiauKai", "標楷體", "Noto Serif TC", serif !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      color: inherit !important;
+      background-color: transparent !important;
+    }
     .cert-editable:hover, .cert-editable:focus {
-      background-color: #f3e8ff;
+      background-color: #f3e8ff !important;
       outline: none;
       border-bottom: 1.5px solid #662E8D;
     }
@@ -505,7 +513,7 @@
     </div>
   </div>
 
-  <!-- 📜 AI 工具啟用暨使用證明書 (預設載入您的 Google Drive 公司印章 + 第一段產品名可自由編輯) -->
+  <!-- 📜 AI 工具啟用暨使用證明書 (強制統一字體大小 + 純文字貼上保護) -->
   <div id="certModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-2 sm:p-4 z-50">
     <div id="certModalInner" class="bg-slate-200 rounded-xl max-w-5xl w-full p-3 sm:p-5 shadow-2xl max-h-[95vh] overflow-y-auto flex flex-col">
       <!-- 頂部操作列 (列印時自動隱藏) -->
@@ -514,7 +522,7 @@
           <h2 class="text-base sm:text-lg font-bold text-[#662E8D] flex items-center gap-1.5">
             <span>📜</span> AI 工具啟用暨使用證明書（可直接點擊虛線文字微調）
           </h2>
-          <p class="text-[11px] text-slate-500">已自動套用客戶名稱、民國年保固起訖與您的預設公司章，確認無誤即可直接列印或另存 PDF。</p>
+          <p class="text-[11px] text-slate-500">已啟用「字體大小自動鎖定」，修改或貼上任何文字都會保持完全一致的字級與版型。</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <!-- 印章更換 / 恢復預設控制 -->
@@ -543,10 +551,10 @@
             AI 工具啟用暨使用證明書
           </h1>
 
-          <!-- 證明書正文 -->
+          <!-- 證明書正文 (統一為 16.5px) -->
           <div class="text-[16.5px] space-y-4 text-justify leading-relaxed">
             <p class="indent-8">
-              茲證明 <span id="certCustName" contenteditable="true" class="cert-editable font-bold text-lg">雅特企業有限公司</span> 已導入昕力資訊股份有限公司提供之「<span id="certIntroProductName" contenteditable="true" class="cert-editable font-bold">AI 知識助理平台(地端版)</span>」，並完成 AI 工具之建置及啟用。
+              茲證明 <span id="certCustName" contenteditable="true" class="cert-editable font-bold">雅特企業有限公司</span> 已導入昕力資訊股份有限公司提供之「<span id="certIntroProductName" contenteditable="true" class="cert-editable font-bold">AI 知識助理平台(地端版)</span>」，並完成 AI 工具之建置及啟用。
             </p>
 
             <p class="indent-8">
@@ -556,7 +564,7 @@
             <!-- 一、導入工具名稱 -->
             <div class="pt-2">
               <h2 class="font-bold text-lg mb-1">一、導入工具名稱</h2>
-              <p class="pl-6">
+              <p class="pl-6 text-[16.5px]">
                 <span id="certToolDetail" contenteditable="true" class="cert-editable">AI 知識助理平台(地端版)：Orient AI 一體機</span>
               </p>
             </div>
@@ -564,7 +572,7 @@
             <!-- 二、AI 工具主要功能 -->
             <div class="pt-1">
               <h2 class="font-bold text-lg mb-1">二、AI 工具主要功能</h2>
-              <div id="certFeaturesList" contenteditable="true" class="cert-editable pl-6 space-y-1 text-[15.5px]">
+              <div id="certFeaturesList" contenteditable="true" class="cert-editable pl-6 space-y-1 text-[16px]">
                 <p>1. AI Chat：提供 AI 對話介面，支援企業知識問答與 AI 助理服務。</p>
                 <p>2. RBAC 權限管理：提供使用者、角色與權限管理，支援企業控管及安全存取。</p>
                 <p>3. LLM Router：支援地端／雲端模型切換。</p>
@@ -579,12 +587,12 @@
             <!-- 三、使用單位／帳號 -->
             <div class="pt-1">
               <h2 class="font-bold text-lg mb-1">三、使用單位／帳號</h2>
-              <p id="certAccountText" contenteditable="true" class="cert-editable pl-6">
-                預設提供一組管理帳號 。後續 可以自行設置創建多組使用者帳號。
+              <p class="pl-6 text-[16.5px]">
+                <span id="certAccountText" contenteditable="true" class="cert-editable">預設提供一組管理帳號 。後續 可以自行設置創建多組使用者帳號。</span>
               </p>
             </div>
 
-            <p class="indent-8 pt-4">
+            <p class="indent-8 pt-4 text-[16.5px]">
               茲證明上述 AI 工具已完成，特立此證明。
             </p>
           </div>
@@ -592,7 +600,7 @@
           <!-- 落款與公司印章疊加區 -->
           <div class="mt-14 pt-6 flex flex-col items-end relative">
             <div class="relative text-center space-y-6 pr-6">
-              <!-- 公司大小章圖片疊加位置 (預設使用您的 Google Drive 印章) -->
+              <!-- 公司大小章圖片疊加位置 -->
               <img id="certStampImg" src="https://lh3.googleusercontent.com/d/19UqbCsBun8FwyrG7bcoFUG_qr-TvAuTk" alt="公司印章" class="stamp-overlay absolute -top-12 right-2 w-48 h-auto z-10">
               
               <p class="font-bold text-xl tracking-[0.25em] relative z-0">
@@ -1073,6 +1081,18 @@
     var currentIssueTimeRange = 'month';
     var currentTodoTab = 'pending';
     var currentMainTab = 'orders';
+
+    // ==================== 純文字貼上保護 (防止貼上時字體大小跑掉) ====================
+    document.addEventListener("DOMContentLoaded", function() {
+      var editables = document.querySelectorAll(".cert-editable");
+      editables.forEach(function(el) {
+        el.addEventListener("paste", function(e) {
+          e.preventDefault();
+          var text = (e.clipboardData || window.clipboardData).getData("text/plain");
+          document.execCommand("insertText", false, text);
+        });
+      });
+    });
 
     // ==================== 印章圖片管理 (預設您的 Google Drive 印章) ====================
     function loadSavedStamp() {
